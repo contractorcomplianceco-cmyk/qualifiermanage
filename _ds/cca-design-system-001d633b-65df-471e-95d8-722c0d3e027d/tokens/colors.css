@@ -1,0 +1,202 @@
+/* ============================================================
+   COLORS — CCA Design System
+   Brand core: Deep Navy + Teal (2026 refresh).
+   The teal checkmark replaces the former signal-blue accent.
+   Base palette + semantic aliases for LIGHT (default) and DARK.
+   ============================================================ */
+
+:root {
+  /* ---------- BRAND CORE ---------- */
+  --cca-navy:        #13233f; /* Deep Navy — primary brand, text, structure */
+  --cca-teal:        #0b8e8e; /* CCA Teal — primary accent, the checkmark */
+  --cca-slate:       #5b6675; /* Steel Slate — neutral */
+  --cca-white:       #ffffff;
+
+  /* ---------- NAVY SCALE ---------- */
+  --navy-950:        #08101c; /* deepest — dark console base */
+  --navy-900:        #0b1626;
+  --navy-850:        #0f1d33;
+  --navy-800:        #13233f; /* = brand navy */
+  --navy-700:        #1b3157;
+  --navy-600:        #274472;
+  --navy-500:        #355a92;
+
+  /* ---------- TEAL SCALE (primary accent) ---------- */
+  --teal-800:        #064f4f;
+  --teal-700:        #076a6a;
+  --teal-600:        #097b7b;
+  --teal-500:        #0b8e8e; /* = brand teal */
+  --teal-400:        #1aa6a6;
+  --teal-300:        #4ec2c2;
+  --teal-200:        #9bdcdc;
+  --teal-100:        #d6f0f0;
+  --teal-50:         #eefafa;
+
+  /* ---------- CHROME / SILVER (logo metallics) ---------- */
+  --chrome-light:    #f4f6f9;
+  --chrome:          #c4ccd6;
+  --chrome-mid:      #98a2b3;
+  --chrome-dark:     #6b7585;
+  --chrome-gradient: linear-gradient(160deg, #f4f6f9 0%, #c4ccd6 38%, #8b95a5 62%, #e9edf2 100%); /* @kind color */
+
+  /* ---------- NEUTRAL / GRAY SCALE (UI) ---------- */
+  --gray-0:          #ffffff;
+  --gray-25:         #fafbfc;
+  --gray-50:         #f3f6f7;
+  --gray-100:        #e8edef;
+  --gray-200:        #dae1e5;
+  --gray-300:        #c2ccd2;
+  --gray-400:        #94a2ab;
+  --gray-500:        #5b6675; /* = steel slate */
+  --gray-600:        #46505d;
+  --gray-700:        #353e49;
+  --gray-800:        #222a34;
+  --gray-900:        #141a22;
+
+  /* ---------- ALT ACCENT: AUTHORITY RED ---------- */
+  /* Used by the CCA Pricing / Quote & Proposal platform and
+     internal "action / approval" surfaces. Secondary to teal. */
+  --red-700:         #9e0c24;
+  --red-600:         #b50e29;
+  --red-500:         #c8102e; /* CCA crimson */
+  --red-400:         #e0344f;
+  --red-100:         #fbe3e7;
+
+  /* ---------- CAG VERTICAL ACCENTS ---------- */
+  /* The shield + lockup are shared CAG-wide; only the accent changes per
+     vertical. --vertical-accent defaults to CCA's Teal; override it
+     on a scope (e.g. [data-vertical="cannabis"]) to retheme a surface. */
+  --vertical-accent:   var(--teal-500); /* @kind color */
+  --cca-accent:        #0b8e8e; /* Contractor — Teal */
+  --pca-accent:        #0b8e8e; /* Provider   — Teal */
+  --cannabis-accent:   #1f9d55; /* Cannabis   — Green */
+  --qca-accent:        #7c4dd0; /* Qualifier  — Purple */
+  --gca-accent:        #0b8e8e; /* Global     — Teal */
+  --tca-accent:        #1b3157; /* Transport  — Deep Navy */
+
+  /* ---------- SEMANTIC HUES ---------- */
+  --success-600:     #157a43;
+  --success-500:     #1f9d55; /* verified / won / on-track */
+  --success-300:     #74cf9b;
+  --success-100:     #e2f5ea;
+
+  --warning-600:     #c9821f;
+  --warning-500:     #e8a33d; /* review / medium / pending */
+  --warning-100:     #fdf2dd;
+
+  --danger-600:      #c2261d;
+  --danger-500:      #e23b2e; /* overdue / lost / risk */
+  --danger-100:      #fde6e3;
+
+  --info-600:        #097b7b;
+  --info-500:        #0b8e8e; /* = brand teal */
+  --info-100:        #d6f0f0;
+
+  /* ============================================================
+     SEMANTIC ALIASES — LIGHT THEME (default)
+     ============================================================ */
+
+  /* Surfaces */
+  --surface-page:      var(--gray-50);
+  --surface-card:      var(--gray-0);
+  --surface-raised:    var(--gray-0);
+  --surface-sunken:    var(--gray-50);
+  --surface-inset:     var(--teal-50);
+  --surface-inverse:   var(--navy-800);     /* navy panels on light pages */
+  --surface-brand:     var(--navy-800);
+  --surface-hover:     var(--gray-50);
+  --surface-active:    var(--gray-100);
+
+  /* Text */
+  --text-strong:       var(--navy-800);     /* headings */
+  --text-body:         var(--gray-800);
+  --text-muted:        var(--gray-500);
+  --text-subtle:       var(--gray-400);
+  --text-inverse:      var(--gray-0);
+  --text-link:         var(--teal-600);
+  --text-on-brand:     var(--gray-0);
+
+  /* Borders / lines */
+  --border-subtle:     var(--gray-100);
+  --border-default:    var(--gray-200);
+  --border-strong:     var(--gray-300);
+  --border-brand:      var(--teal-500);
+  --divider:           var(--gray-100);
+
+  /* Accents */
+  --accent:            var(--teal-500);
+  --accent-hover:      var(--teal-600);
+  --accent-active:     var(--teal-700);
+  --accent-soft:       var(--teal-100);
+  --accent-soft-text:  var(--teal-700);
+  --focus-ring:        rgba(11, 142, 142, 0.35);
+
+  /* Status tokens (text + soft bg pairs) */
+  --status-ok-text:    var(--success-600);
+  --status-ok-bg:      var(--success-100);
+  --status-warn-text:  var(--warning-600);
+  --status-warn-bg:    var(--warning-100);
+  --status-bad-text:   var(--danger-600);
+  --status-bad-bg:     var(--danger-100);
+  --status-info-text:  var(--teal-700);
+  --status-info-bg:    var(--teal-100);
+}
+
+/* ============================================================
+   SEMANTIC ALIASES — DARK THEME
+   Apply with <html data-theme="dark"> or [data-theme="dark"].
+   This is the BidIntelligenceOS / ROSE OS console mode.
+   ============================================================ */
+[data-theme="dark"] {
+  --surface-page:      var(--navy-950);
+  --surface-card:      #101f33;        /* card on dark navy */
+  --surface-raised:    #16273f;
+  --surface-sunken:    #0b1626;
+  --surface-inset:     rgba(11,142,142,0.12);
+  --surface-inverse:   var(--gray-0);
+  --surface-brand:     var(--navy-800);
+  --surface-hover:     rgba(255,255,255,0.04);
+  --surface-active:    rgba(255,255,255,0.08);
+
+  --text-strong:       #eef6f6;
+  --text-body:         #c4d2d6;
+  --text-muted:        #8696a0;
+  --text-subtle:       #5d6c78;
+  --text-inverse:      var(--navy-800);
+  --text-link:         var(--teal-300);
+  --text-on-brand:     var(--gray-0);
+
+  --border-subtle:     rgba(255,255,255,0.06);
+  --border-default:    rgba(255,255,255,0.10);
+  --border-strong:     rgba(255,255,255,0.18);
+  --border-brand:      var(--teal-400);
+  --divider:           rgba(255,255,255,0.08);
+
+  --accent:            var(--teal-400);
+  --accent-hover:      var(--teal-300);
+  --accent-active:     var(--teal-500);
+  --accent-soft:       rgba(11,142,142,0.18);
+  --accent-soft-text:  var(--teal-300);
+  --focus-ring:        rgba(26, 166, 166, 0.45);
+
+  --status-ok-text:    var(--success-300);
+  --status-ok-bg:      rgba(31,157,85,0.16);
+  --status-warn-text:  var(--warning-500);
+  --status-warn-bg:    rgba(232,163,61,0.16);
+  --status-bad-text:   #ff8077;
+  --status-bad-bg:     rgba(226,59,46,0.16);
+  --status-info-text:  var(--teal-300);
+  --status-info-bg:    rgba(11,142,142,0.16);
+}
+
+/* ============================================================
+   CAG VERTICAL THEMING
+   Set data-vertical on any element/root to retheme --vertical-accent
+   for that branch (use it on the lockup checkmark, links, KPIs, etc.).
+   ============================================================ */
+[data-vertical="contractor"]   { --vertical-accent: var(--cca-accent); }
+[data-vertical="provider"]     { --vertical-accent: var(--pca-accent); }
+[data-vertical="cannabis"]     { --vertical-accent: var(--cannabis-accent); }
+[data-vertical="qualifier"]    { --vertical-accent: var(--qca-accent); }
+[data-vertical="global"]       { --vertical-accent: var(--gca-accent); }
+[data-vertical="transportation"] { --vertical-accent: var(--tca-accent); }

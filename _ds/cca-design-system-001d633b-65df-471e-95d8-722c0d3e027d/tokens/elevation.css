@@ -1,0 +1,45 @@
+/* ============================================================
+   ELEVATION — shadows, glows, transitions, z-index
+   CCA uses crisp, low-spread shadows on light surfaces and
+   luminous signal-blue glows on dark console surfaces.
+   ============================================================ */
+
+:root {
+  /* ---------- SHADOWS (light surfaces) ---------- */
+  --shadow-xs:  0 1px 2px rgba(19, 35, 63, 0.06);
+  --shadow-sm:  0 1px 3px rgba(19, 35, 63, 0.08), 0 1px 2px rgba(19, 35, 63, 0.04);
+  --shadow-md:  0 4px 12px rgba(19, 35, 63, 0.08), 0 1px 3px rgba(19, 35, 63, 0.05);
+  --shadow-lg:  0 12px 28px rgba(19, 35, 63, 0.12), 0 2px 6px rgba(19, 35, 63, 0.06);
+  --shadow-xl:  0 24px 48px rgba(19, 35, 63, 0.16);
+
+  /* card resting / hover */
+  --shadow-card:       var(--shadow-sm);
+  --shadow-card-hover: var(--shadow-md);
+
+  /* ---------- GLOWS (dark console surfaces) ---------- */
+  --glow-teal:    0 0 0 1px rgba(11,142,142,0.38), 0 0 20px rgba(11,142,142,0.28);
+  --glow-teal-sm: 0 0 12px rgba(11,142,142,0.32);
+  --shadow-dark:  0 8px 24px rgba(0,0,0,0.40);
+
+  /* ---------- RINGS ---------- */
+  --ring-focus:  0 0 0 3px var(--focus-ring);
+
+  /* ---------- TRANSITIONS ---------- */
+  /* Brand motion is precise & confident: short, eased, no bounce. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);      /* @kind other */
+  --ease-out:      cubic-bezier(0.16, 1, 0.3, 1);   /* @kind other */
+  --ease-in-out:   cubic-bezier(0.65, 0, 0.35, 1);  /* @kind other */
+  --dur-fast:   120ms; /* @kind other */
+  --dur-base:   180ms; /* @kind other */
+  --dur-slow:   280ms; /* @kind other */
+  --transition: all var(--dur-base) var(--ease-standard); /* @kind other */
+
+  /* ---------- Z-INDEX ---------- */
+  --z-base:     1;   /* @kind other */
+  --z-sticky:   100; /* @kind other */
+  --z-dropdown: 300; /* @kind other */
+  --z-overlay:  400; /* @kind other */
+  --z-modal:    500; /* @kind other */
+  --z-toast:    600; /* @kind other */
+  --z-tooltip:  700; /* @kind other */
+}

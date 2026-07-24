@@ -1,0 +1,12 @@
+/* ============================================================
+   CCA Design System — global entry point
+   Contractor Compliance Authority / Compliance Authority Group
+   This file is a manifest of @import lines only.
+   Consumers link THIS file.
+   ============================================================ */
+
+@import "tokens/fonts.css";
+@import "tokens/colors.css";
+@import "tokens/typography.css";
+@import "tokens/spacing.css";
+@import "tokens/elevation.css";
