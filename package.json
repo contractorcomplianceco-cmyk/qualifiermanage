@@ -1,0 +1,34 @@
+{
+  "name": "qualifiermanage-os",
+  "version": "0.1.0",
+  "private": true,
+  "description": "QualifierManageOS — CCA internal command center for managing qualified individuals across licensing, compliance, availability, matching, placements, documents, and risk. Phase-1 prototype (static HTML + ES modules) built to map 1:1 onto a Postgres/Supabase backend.",
+  "author": "Contractor Compliance Authority (CCA)",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "QualifierManageOS.dc.html",
+  "scripts": {
+    "start": "serve . --listen 3000",
+    "dev": "serve . --listen 3000",
+    "serve": "serve . --listen 3000",
+    "serve:python": "python3 -m http.server 3000"
+  },
+  "devDependencies": {
+    "serve": "^14.2.4"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/contractorcomplianceco-cmyk/qualifiermanage.git"
+  },
+  "keywords": [
+    "cca",
+    "qualifier",
+    "compliance",
+    "licensing",
+    "government-contracting",
+    "prototype"
+  ]
+}
