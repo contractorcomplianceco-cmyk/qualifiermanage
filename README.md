@@ -14,8 +14,11 @@ placements, documents, and risk**. Phase-1 prototype, built to map cleanly onto 
 
 | Path | What it is |
 |---|---|
-| `QualifierManageOS.dc.html` | The entire app — one self-contained UI component (markup + logic). 12 sections. |
-| `data.js` | **The data layer.** ES module exporting the seed database as 9 collections. This is the contract to wire to a real backend. |
+| `QualifierManageOS.dc.html` | The entire app — one self-contained UI component (markup + logic). 13 sections. |
+| `coverage-map.html` | Standalone iframe mounted inside the app's Coverage Map view. Renders a live SVG US map (density shading + available-bench pins + coverage-gap dots) driven off `data.js`. |
+| `data.js` | **The data layer.** ES module that composes `data.base.js` + `data.bulk.js` and exports the seed database as 11 collections. This is the contract to wire to a real backend. |
+| `data.base.js` | Reviewed Phase-1 base seed (roles, roster, roles' first placements/needs/risks). |
+| `data.bulk.js` | Procedurally generates ~1,000 licenses + qualifiers + docs at module load time so the Licenses register carries production-scale volume. Deterministic (seeded), same shape as `data.base.js`. |
 | `support.js` | Runtime that renders the `.dc.html` file in a browser. Generated — do not edit. |
 | `assets/` | Logo lockup + emblem (navy/teal). |
 | `_ds/cca-design-system-.../` | The bound **CCA Design System** (tokens + component bundle). Provides `var(--*)` tokens and styling. |
@@ -52,10 +55,15 @@ that import with real fetches that return the **same shape** (`{ QUALIFIERS, LIC
 DOCUMENTS, NEEDS, MATCHES, PLACEMENTS, REVIEWS, RISKS, STAFF, TODAY }`) — **the UI needs no other
 changes**. See `DATA_MODEL.md` for the full contract and recommended source system for each entity.
 
-**Writes** are only two actions, currently held in local component state (`matchOverrides`,
-`riskOverrides`) — these are the mutations to point at the backend:
+**Writes** are only two actions, held in component state (`matchOverrides`, `riskOverrides`) and
+mirrored into `localStorage` under key `qmos.prototype.overrides.v1` so decisions survive reload
+within a browser session. These are the mutations to point at the backend:
 - **Match approval** — `approveMatch(id, status)` sets `adminApprovalStatus` + reviewer + date.
 - **Risk status change** — `setRisk(id, status)` updates `riskStatus`.
+
+The prototype's decision toasts are honestly scoped: they say *"Decision recorded (prototype session
+— backend audit log lands with Phase 1 wiring)"* rather than claiming a durable audit trail. Phase
+1 wiring replaces the `localStorage` mirror with real POSTs + a server-side audit log.
 
 ---
 
@@ -79,4 +87,5 @@ stack (React + TypeScript + Tailwind v4 + Supabase, per CCA's stack) using its e
 
 - **Export** and **Add qualifier** buttons are no-ops (toast only).
 - **Reports** timing/revenue figures are placeholders — labeled in-app "until finance wiring lands."
+- **Match approvals** and **risk status changes** persist to `localStorage` only — real audit log lands with Phase 1 backend wiring. Toast copy is scoped to say so.
 - All figures are computed live from `data.js` seed data.

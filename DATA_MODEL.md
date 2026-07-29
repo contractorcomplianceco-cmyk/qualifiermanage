@@ -162,12 +162,55 @@ with the AuditEngine / ecosystem review — stated as recommendations, not assum
 | RISKS | Risk register — **align with AuditEngine risk model** | `riskType` / `riskLevel` should reconcile with AuditEngine's taxonomy. **(confirm)** whether these are QMOS-native or mirrored from AuditEngine. |
 | STAFF / roles | Auth (Supabase RLS / SSO) | UI role gating must be mirrored by row-level security server-side. |
 
-### Key cross-system question for the AuditEngine review
+### Cross-system ID mapping (decided — 2026-07-29)
+
 DocumentCollection is described as *keyed on the universal matrix identifiers* and a *read-only
-consumer of AuditEngine*. QMOS currently uses its own `Q-`/`L-`/`N-`/… keys. **Decide how QMOS IDs
-map to (or are replaced by) the universal matrix identifiers** so QMOS, DocumentCollection, and
-AuditEngine reference the same qualifier/license/placement rows. This mapping is the single most
-important thing to settle before wiring cross-system reads/writes.
+consumer of AuditEngine*. QMOS currently uses its own `Q-`/`L-`/`N-`/… keys.
+
+**Decision: QMOS keeps its friendly IDs as stable primary keys. AuditEngine / universal matrix
+identifiers live in nullable `external_id` columns on the synced tables.** Concretely:
+
+| QMOS table | PK (unchanged) | New nullable column | Populated when |
+|---|---|---|---|
+| `qualifiers` | `id` = `Q-###` | `auditengine_id` (uuid, unique, nullable) | Row is first synced to AuditEngine |
+| `licenses` | `id` = `L-###` | `auditengine_id` (uuid, unique, nullable) | Row is first synced to AuditEngine |
+| `placements` | `id` = `P-###` | `auditengine_id` (uuid, unique, nullable) | Row is first synced to AuditEngine |
+| `needs` | `id` = `N-###` | `auditengine_id` (uuid, unique, nullable) | Row is first synced to AuditEngine |
+| `risks` | `id` = `R-###` | `auditengine_id` (uuid, unique, nullable) | If risk mirrors an AuditEngine risk |
+
+**Why this shape.**
+
+1. **QMOS keys are already threaded through every screen** — URLs, tooltips, exports, admin notes,
+   internal reports. Swapping them out for UUIDs would break the UI's IA and every staff shortcut.
+2. **QMOS is the downstream consumer.** AuditEngine and DocumentCollection are the systems of
+   record for compliance events; QMOS mirrors what it needs. A nullable `external_id` on the
+   downstream table is the standard shape for that relationship.
+3. **One-to-one until proven otherwise.** Every qualifier in QMOS corresponds to at most one
+   AuditEngine contractor record. Same for licenses, placements, needs. If we ever hit a
+   many-to-many case (e.g., a QMOS placement spanning two AuditEngine engagements), we add a
+   mapping table then — not now.
+4. **Reversible.** Nullable columns cost nothing while empty. If we later decide to adopt the
+   universal matrix ID as PK, the migration is: backfill `external_id`, then swap.
+
+**Rules.**
+
+- Every sync-eligible write to `qualifiers` / `licenses` / `placements` / `needs` publishes a
+  sync event; the sync worker attaches `auditengine_id` on first success and never mutates it
+  afterward.
+- QMOS never accepts an AuditEngine ID as a URL parameter or lookup key from the UI. Staff work
+  in QMOS keys; the mapping is server-side.
+- Read paths from AuditEngine / DocumentCollection resolve to QMOS keys via the `external_id`
+  index before hydrating the UI.
+- `external_id` is nullable so QMOS records can exist before (or without) an AuditEngine
+  counterpart — e.g., intake-stage qualifiers.
+
+**Deferred to a follow-up decision** (not blocking Phase 1 wiring):
+
+- Whether `matches` needs an `external_id` — depends on whether AuditEngine tracks candidate
+  proposals or only approved placements.
+- Whether `documents` mirrors DocumentCollection IDs directly or resolves via the qualifier's
+  `external_id`. Current lean: resolve via qualifier, since DocumentCollection is the read-only
+  source and QMOS holds statuses only.
 
 ### Write paths to wire (currently local state)
 - `approveMatch(id, status)` → update `MATCHES.adminApprovalStatus` + `reviewedBy` + `reviewedDate` (audit-logged).

@@ -1,27 +1,8 @@
-# Dependencies
-node_modules/
-.pnp/
-.pnp.js
-
-# Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-
-# Environment
-.env
-.env.local
-.env.*.local
-
-# Editor / OS
 .DS_Store
+.thumbnail
 Thumbs.db
-.vscode/
-.idea/
 *.swp
-
-# Build output (none today, reserved)
-dist/
-build/
-.cache/
+*.swo
+.idea/
+.vscode/
+node_modules/

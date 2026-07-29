@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QualifierManageOS · Coverage Map</title>
+  <link rel="stylesheet" href="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/tokens/fonts.css">
+  <link rel="stylesheet" href="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/tokens/colors.css">
+  <link rel="stylesheet" href="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/tokens/typography.css">
+  <link rel="stylesheet" href="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/tokens/spacing.css">
+  <link rel="stylesheet" href="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/tokens/elevation.css">
+  <link rel="stylesheet" href="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/styles.css">
+  <style>
+    html, body { margin: 0; padding: 0; background: transparent; font-family: var(--font-body); color: var(--text-body); overflow: hidden; }
+    body { padding: 8px; box-sizing: border-box; }
+    body[data-theme="dark"] { color-scheme: dark; }
+    #map-wrap { position: relative; width: 100%; height: calc(100vh - 16px); border-radius: 10px; overflow: hidden; background: var(--surface-sunken); }
+    svg#map { width: 100%; height: 100%; display: block; }
+    .state { stroke: var(--border-default); stroke-width: 0.5px; transition: fill 900ms var(--ease-out, ease-out), stroke 200ms; cursor: pointer; }
+    .state:hover { stroke: var(--accent); stroke-width: 1.4px; }
+    .pin { pointer-events: none; }
+    .pin-avail { fill: var(--teal-500, #0b8e8e); }
+    .pin-gap-med { fill: #f59e0b; }
+    .pin-gap-high { fill: #e5484d; }
+    body[data-motion="on"] .pin-avail { animation: pin-pop 620ms var(--ease-out, ease-out) both; }
+    body[data-motion="on"] .pin-gap-med { animation: pulse-med 2.4s ease-in-out infinite; }
+    body[data-motion="on"] .pin-gap-high { animation: pulse-high 1.6s ease-in-out infinite; }
+    @keyframes pin-pop { 0% { transform: scale(0); opacity: 0; } 60% { transform: scale(1.4); opacity: 1; } 100% { transform: scale(1); opacity: 1; } }
+    @keyframes pulse-med { 0%,100% { opacity: 0.55; r: 5; } 50% { opacity: 1; r: 8; } }
+    @keyframes pulse-high { 0%,100% { opacity: 0.7; r: 6; } 50% { opacity: 1; r: 10; } }
+    .legend { position: absolute; bottom: 10px; left: 10px; display: flex; gap: 14px; padding: 8px 12px; border-radius: 999px; background: var(--surface-card); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); font-size: 10.5px; color: var(--text-muted); font-family: var(--font-body); }
+    .legend span { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+    .legend i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .density-scale { position: absolute; top: 10px; right: 10px; padding: 8px 10px; border-radius: 10px; background: var(--surface-card); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); font-size: 10px; color: var(--text-muted); }
+    .density-scale-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
+    .density-scale-bar { width: 90px; height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--surface-active), var(--teal-500, #0b8e8e)); }
+    .density-scale-labels { display: flex; justify-content: space-between; width: 90px; font-size: 9px; color: var(--text-subtle); margin-top: 2px; font-family: var(--font-mono); }
+    .tooltip { position: absolute; pointer-events: none; padding: 8px 10px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); font-size: 11px; color: var(--text-body); max-width: 240px; opacity: 0; transition: opacity 140ms; z-index: 10; }
+    .tooltip strong { color: var(--text-strong); }
+    .tooltip .muted { color: var(--text-muted); font-size: 10px; margin-top: 3px; }
+    .empty-state { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 12px; }
+    .human-review { position: absolute; top: 10px; left: 10px; padding: 6px 10px; border-radius: 8px; background: var(--surface-card); border: 1px solid var(--border-subtle); box-shadow: var(--shadow-card); font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.10em; color: var(--text-subtle); text-transform: uppercase; }
+  </style>
+</head>
+<body>
+  <div id="map-wrap">
+    <div class="human-review">Human review required before external use</div>
+    <svg id="map" viewBox="0 0 975 610" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Coverage map of the United States">
+      <g id="states-layer"></g>
+      <g id="pins-layer"></g>
+    </svg>
+    <div class="density-scale">
+      <div style="font-weight:600;color:var(--text-strong);font-size:10.5px">Licensed bench density</div>
+      <div class="density-scale-row"><div class="density-scale-bar"></div></div>
+      <div class="density-scale-labels"><span>0</span><span>heavy</span></div>
+    </div>
+    <div class="legend">
+      <span><i class="pin-avail" style="background:var(--teal-500,#0b8e8e)"></i>Available bench</span>
+      <span><i class="pin-gap-med" style="background:#f59e0b"></i>Coverage gap · med</span>
+      <span><i class="pin-gap-high" style="background:#e5484d"></i>Coverage gap · high</span>
+    </div>
+    <div id="tooltip" class="tooltip"></div>
+    <div id="empty" class="empty-state" style="display:none">Loading map…</div>
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/topojson-client@3/dist/topojson-client.min.js"></script>
+  <script type="module">
+    // Read theme + motion from parent iframe URL (mounted by QualifierManageOS shell).
+    const params = new URLSearchParams(location.search);
+    const theme = params.get('theme') || 'light';
+    const motion = params.get('motion') || 'on';
+    document.body.setAttribute('data-theme', theme);
+    document.body.setAttribute('data-motion', motion);
+
+    // Load seed data — same data.js used by the shell so the map stays in sync.
+    let data;
+    try {
+      data = await import('./data.js');
+    } catch (e) {
+      document.getElementById('empty').textContent = 'Unable to load seed data.';
+      document.getElementById('empty').style.display = 'flex';
+      throw e;
+    }
+    const CITIES = data.CITIES || {};
+    const COVERAGE_GAPS = data.COVERAGE_GAPS || [];
+    const QUALIFIERS = data.QUALIFIERS || [];
+    const LICENSES = data.LICENSES || [];
+    const AVAILABILITY = data.AVAILABILITY || [];
+
+    // Density by state = distinct qualifiers with a placement-usable license in that state.
+    const usableByState = {};
+    const availByState = {};
+    LICENSES.forEach(l => {
+      if (!l.state) return;
+      if (l.canBeUsedForPlacement === false) return;
+      (usableByState[l.state] = usableByState[l.state] || new Set()).add(l.qualifierId);
+    });
+    const avStatusById = {};
+    AVAILABILITY.forEach(a => avStatusById[a.qualifierId] = a.availabilityStatus);
+    LICENSES.forEach(l => {
+      if (l.canBeUsedForPlacement === false) return;
+      const q = QUALIFIERS.find(q => q.id === l.qualifierId);
+      if (!q || !q.availableForPlacement) return;
+      if (avStatusById[q.id] !== 'Available Now' && avStatusById[q.id] !== 'Limited Availability') return;
+      (availByState[l.state] = availByState[l.state] || new Set()).add(q.id);
+    });
+    const densityCount = st => (usableByState[st] ? usableByState[st].size : 0);
+    const maxDensity = Math.max(1, ...Object.values(usableByState).map(s => s.size));
+
+    // Load US topojson.
+    const topo = await fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-10m.json').then(r => r.json());
+    const states = topojson.feature(topo, topo.objects.states);
+    // FIPS → USPS abbreviation.
+    const FIPS_TO_USPS = { '01':'AL','02':'AK','04':'AZ','05':'AR','06':'CA','08':'CO','09':'CT','10':'DE','11':'DC','12':'FL','13':'GA','15':'HI','16':'ID','17':'IL','18':'IN','19':'IA','20':'KS','21':'KY','22':'LA','23':'ME','24':'MD','25':'MA','26':'MI','27':'MN','28':'MS','29':'MO','30':'MT','31':'NE','32':'NV','33':'NH','34':'NJ','35':'NM','36':'NY','37':'NC','38':'ND','39':'OH','40':'OK','41':'OR','42':'PA','44':'RI','45':'SC','46':'SD','47':'TN','48':'TX','49':'UT','50':'VT','51':'VA','53':'WA','54':'WV','55':'WI','56':'WY' };
+
+    const projection = d3.geoAlbersUsa().scale(1200).translate([487, 305]);
+    const path = d3.geoPath(projection);
+    const teal = getComputedStyle(document.documentElement).getPropertyValue('--teal-500').trim() || '#0b8e8e';
+    const surfaceActive = getComputedStyle(document.documentElement).getPropertyValue('--surface-active').trim() || '#e2e8f0';
+
+    const color = d3.scaleLinear()
+      .domain([0, maxDensity])
+      .range([surfaceActive, teal])
+      .interpolate(d3.interpolateHcl);
+
+    const tooltip = document.getElementById('tooltip');
+    const showTip = (evt, html) => {
+      tooltip.innerHTML = html;
+      tooltip.style.opacity = '1';
+      const wrap = document.getElementById('map-wrap').getBoundingClientRect();
+      const x = evt.clientX - wrap.left + 12;
+      const y = evt.clientY - wrap.top + 12;
+      tooltip.style.left = Math.min(x, wrap.width - 260) + 'px';
+      tooltip.style.top = Math.min(y, wrap.height - 100) + 'px';
+    };
+    const hideTip = () => { tooltip.style.opacity = '0'; };
+
+    // Render states with animated density fill.
+    const statesLayer = d3.select('#states-layer');
+    const feat = statesLayer.selectAll('path')
+      .data(states.features)
+      .enter().append('path')
+      .attr('class', 'state')
+      .attr('d', path)
+      .attr('fill', surfaceActive)
+      .on('mousemove', (evt, d) => {
+        const usps = FIPS_TO_USPS[d.id];
+        const den = densityCount(usps);
+        const av = availByState[usps] ? availByState[usps].size : 0;
+        const gap = COVERAGE_GAPS.find(g => g.state === usps);
+        showTip(evt, `<strong>${d.properties.name}</strong> (${usps || '—'})<div class="muted">Licensed bench: ${den} qualifier${den === 1 ? '' : 's'} · Available now: ${av}${gap ? '<br>Gap: ' + gap.reason : ''}</div>`);
+      })
+      .on('mouseleave', hideTip);
+
+    // Animate density fill on load.
+    if (motion === 'on') {
+      feat.transition().duration(900).delay((d, i) => i * 6).attr('fill', d => color(densityCount(FIPS_TO_USPS[d.id])));
+    } else {
+      feat.attr('fill', d => color(densityCount(FIPS_TO_USPS[d.id])));
+    }
+
+    // Pins: available bench (green) + coverage gaps (amber/red).
+    const pinsLayer = d3.select('#pins-layer');
+    const cityAgg = {};
+    QUALIFIERS.forEach(q => {
+      if (!q.availableForPlacement) return;
+      const av = avStatusById[q.id];
+      if (av !== 'Available Now' && av !== 'Limited Availability') return;
+      if (!q.city || !CITIES[q.city]) return;
+      const key = q.city;
+      (cityAgg[key] = cityAgg[key] || { city: q.city, coords: CITIES[q.city], count: 0, names: [] });
+      cityAgg[key].count += 1;
+      cityAgg[key].names.push(q.preferredName || q.fullName);
+    });
+    Object.values(cityAgg).forEach(agg => {
+      const p = projection(agg.coords);
+      if (!p) return;
+      const g = pinsLayer.append('g').attr('transform', `translate(${p[0]},${p[1]})`).attr('class', 'pin');
+      g.append('circle')
+        .attr('r', Math.min(9, 4 + Math.sqrt(agg.count) * 2))
+        .attr('class', 'pin-avail')
+        .attr('opacity', 0.85)
+        .attr('stroke', 'white').attr('stroke-width', 1.5)
+        .style('pointer-events', 'auto')
+        .style('cursor', 'pointer')
+        .on('mousemove', evt => showTip(evt, `<strong>${agg.city}</strong><div class="muted">${agg.count} qualifier${agg.count === 1 ? '' : 's'} available now:<br>${agg.names.slice(0, 4).join(', ')}${agg.names.length > 4 ? ' +' + (agg.names.length - 4) + ' more' : ''}</div>`))
+        .on('mouseleave', hideTip);
+      if (agg.count > 1) {
+        g.append('text').attr('text-anchor', 'middle').attr('dy', 3).attr('font-size', 8.5).attr('font-weight', 700).attr('fill', 'white').attr('pointer-events', 'none').text(agg.count);
+      }
+    });
+
+    COVERAGE_GAPS.forEach(gap => {
+      const coords = CITIES[gap.city];
+      if (!coords) return;
+      const p = projection(coords);
+      if (!p) return;
+      const g = pinsLayer.append('g').attr('transform', `translate(${p[0]},${p[1]})`).attr('class', 'pin');
+      const sev = gap.severity === 'high' ? 'high' : 'med';
+      g.append('circle')
+        .attr('r', sev === 'high' ? 8 : 6)
+        .attr('class', `pin-gap-${sev}`)
+        .attr('opacity', 0.85)
+        .attr('stroke', 'white').attr('stroke-width', 1.5)
+        .style('pointer-events', 'auto')
+        .style('cursor', 'pointer')
+        .on('mousemove', evt => showTip(evt, `<strong>Coverage gap · ${gap.city}, ${gap.state}</strong><div class="muted">${gap.reason}<br>${gap.openNeeds} open need${gap.openNeeds === 1 ? '' : 's'}${gap.needId ? ' · ' + gap.needId : ''}</div>`))
+        .on('mouseleave', hideTip);
+    });
+  </script>
+</body>
+</html>
