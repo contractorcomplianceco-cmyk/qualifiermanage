@@ -9,6 +9,8 @@
 | File | Purpose |
 |---|---|
 | `0001_qmos_schema_v1.sql` | Schema v1 — core tables + Option A `auditengine_id` + append-only `decision_audit_log` |
+| `0002_qmos_rls_v1.sql` | RLS v1 — **proposal / not applied until Rose yes** — revoke anon, FORCE RLS, staff JWT policies |
+| `RLS_V1_PROPOSAL.md` | Human-readable matrix + decisions for Rose review |
 
 ## Apply (when Rose says yes — env NAMES only)
 
@@ -23,12 +25,11 @@
 
 ## Out of scope for 0001 (next slices — need Rose yes)
 
-- RLS policies
-- Staff email/password allowlist auth tables + invite flow
+- RLS policies → see `0002_qmos_rls_v1.sql` + `RLS_V1_PROPOSAL.md` (propose first; apply only after separate yes)
+- Staff email/password allowlist auth tables + invite flow (must issue JWT claims `qmos_role` for 0002 policies to admit staff)
 - Read/write API replacing `import('./data.js')`
 - Seed load / retiring `data.bulk.js`
 - AuditEngine / DocumentCollection sync seams (stay OFF)
-- DNS / `qualifiers.cagteam.net`
 
 ## Rules
 
