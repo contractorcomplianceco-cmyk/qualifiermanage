@@ -11,6 +11,7 @@
 | `0001_qmos_schema_v1.sql` | Schema v1 — core tables + Option A `auditengine_id` + append-only `decision_audit_log` |
 | `0002_qmos_rls_v1.sql` | RLS v1 — **proposal / not applied until Rose yes** — revoke anon, FORCE RLS, staff JWT policies |
 | `RLS_V1_PROPOSAL.md` | Human-readable matrix + decisions for Rose review |
+| `0003_rls_grant_hygiene.sql` | Post-0002 grant hygiene (anon zero; column INSERT/UPDATE; views SELECT-only) |
 
 ## Apply (when Rose says yes — env NAMES only)
 
