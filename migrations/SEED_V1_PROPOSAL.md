@@ -1,6 +1,6 @@
 # QualifierManageOS — Base seed v1 proposal (0009)
 
-**Status:** PROPOSAL ONLY — not applied  
+**Status:** APPLIED — journal `0009_seed_base_v1`  
 **Audience:** `[INTERNAL ONLY]`  
 **Sequencing:** shape yes → separate apply yes  
 **Depends on:** live `0001`–`0008` (schema, RLS, allowlist, API)  
