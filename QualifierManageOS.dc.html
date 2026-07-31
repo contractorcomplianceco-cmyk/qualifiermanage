@@ -2213,6 +2213,9 @@ class Component extends DCLogic {
   }
   approveMatch(id, status) {
     return async () => {
+      const lock = 'match:' + id;
+      if (this._writeBusy && this._writeBusy.has(lock)) return;
+      (this._writeBusy || (this._writeBusy = new Set())).add(lock);
       try {
         const api = this._api || await import('./qmos-api.js');
         const row = await api.approveMatch(id, status);
@@ -2229,11 +2232,16 @@ class Component extends DCLogic {
         else this.say('Match ' + id + ' marked ' + status + ' by ' + user + ' — decision recorded.');
       } catch (e) {
         this.say((e && e.message) || 'Match approval failed.');
+      } finally {
+        this._writeBusy.delete(lock);
       }
     };
   }
   setRisk(id, status) {
     return async () => {
+      const lock = 'risk:' + id;
+      if (this._writeBusy && this._writeBusy.has(lock)) return;
+      (this._writeBusy || (this._writeBusy = new Set())).add(lock);
       try {
         const api = this._api || await import('./qmos-api.js');
         const row = await api.setRisk(id, status);
@@ -2242,6 +2250,8 @@ class Component extends DCLogic {
         this.say('Risk ' + id + ' → ' + status + '. Decision recorded.');
       } catch (e) {
         this.say((e && e.message) || 'Risk update failed.');
+      } finally {
+        this._writeBusy.delete(lock);
       }
     };
   }
