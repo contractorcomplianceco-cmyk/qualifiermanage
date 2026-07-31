@@ -17,7 +17,9 @@
 | `0005_staff_allowlist_auth_v1.sql` | Staff allowlist auth v1 — **proposal / not applied until Rose yes** |
 | `0006_allowlist_hook_force_rls_fix.sql` | Hotfix after 0005 apply — auth_admin staff policies + VOLATILE hook |
 | `API_V1_PROPOSAL.md` | Read/write API v1 — human proposal for Rose (shape review) |
-| `0007_api_write_rpcs_v1.sql` | API write RPCs — **proposal / not applied until Rose yes** |
+| `AUTH_PROVISIONING.md` | How staff Auth accounts are created (service_role / Dashboard; signup off) |
+| `0007_api_write_rpcs_v1.sql` | API write RPCs (approve_match / set_risk + audit INSERT widen) |
+| `0008_view_staff_filter.sql` | DEFINER views: WHERE qmos_is_staff() for non-allowlisted empty |
 
 ## Apply (when Rose says yes — env NAMES only)
 

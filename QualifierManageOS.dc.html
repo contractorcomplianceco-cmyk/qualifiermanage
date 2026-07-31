@@ -72,6 +72,32 @@
   </style>
 </helmet>
 <div data-vertical="qualifier" data-theme="{{ theme }}" data-motion="{{ motionAttr }}" style="position:relative;display:flex;height:100vh;overflow:hidden;background:var(--surface-page);color:var(--text-body);font-family:var(--font-sans);font-size:14px">
+  <sc-if value="{{ authGate }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--surface-page)">
+      <div style="width:100%;max-width:420px;border:1px solid var(--border-subtle);border-radius:16px;background:var(--surface-card);box-shadow:var(--shadow-card);padding:28px 26px">
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;color:var(--text-subtle)">CCA INTERNAL · QUALIFIERMANAGEOS</div>
+        <h1 style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text-strong);margin:8px 0 6px">Staff sign-in</h1>
+        <sc-if value="{{ authLoading }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-top:10px">Checking your session…</div>
+        </sc-if>
+        <sc-if value="{{ authDenied }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:rgba(226,59,46,0.08);border:1px solid rgba(226,59,46,0.25);color:var(--danger-600);font-size:13px;line-height:1.5">{{ authMessage }}</div>
+          <div onClick="{{ doSignOut }}" style="margin-top:16px;display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 16px;border-radius:10px;background:var(--surface-sunken);border:1px solid var(--border-default);cursor:pointer;font-weight:600;font-size:13px" class="qm-btn">Sign out</div>
+        </sc-if>
+        <sc-if value="{{ authLogin }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;margin:4px 0 16px">Use your provisioned staff email and password. Public signup is off — ask an Admin if you need an account.</div>
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--text-subtle);margin-bottom:6px">Email</label>
+          <input value="{{ loginEmail }}" onChange="{{ setLoginEmail }}" type="email" autocomplete="username" placeholder="you@cagteam.net" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-default);background:var(--surface-sunken);margin-bottom:12px">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--text-subtle);margin-bottom:6px">Password</label>
+          <input value="{{ loginPassword }}" onChange="{{ setLoginPassword }}" type="password" autocomplete="current-password" placeholder="••••••••" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-default);background:var(--surface-sunken);margin-bottom:14px">
+          <sc-if value="{{ hasAuthError }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-bottom:12px;padding:10px 12px;border-radius:10px;background:rgba(226,59,46,0.08);border:1px solid rgba(226,59,46,0.25);color:var(--danger-600);font-size:12.5px;line-height:1.45">{{ authMessage }}</div>
+          </sc-if>
+          <div onClick="{{ doLogin }}" style="display:flex;align-items:center;justify-content:center;height:40px;border-radius:10px;background:linear-gradient(145deg,#1aa6a6,#0b8e8e);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer" class="qm-btn">{{ loginBtn }}</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
   <sc-if value="{{ dark }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:radial-gradient(1200px 820px at 15% -10%, #0c1d31, #08101c 60%)">
       <div style="position:absolute;width:360px;height:360px;left:-80px;top:-90px;border-radius:50%;background:radial-gradient(circle, rgba(11,142,142,.22), transparent 66%);filter:blur(10px)" class="qm-drift1"></div>
@@ -158,7 +184,7 @@
         <div onClick="{{ toggleTheme }}" title="Toggle theme" style="width:34px;height:34px;flex:none;border-radius:10px;border:1px solid var(--border-default);display:grid;place-items:center;cursor:pointer;color:var(--text-muted);background:var(--surface-card)" style-hover="background:var(--surface-hover);color:var(--accent)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIcon }}"></path></svg>
         </div>
-        <div onClick="{{ cycleRole }}" class="{{ rolePillCls }}" title="Switch view role" style="display:flex;align-items:center;gap:7px;height:34px;flex:none;padding:0 12px;border:1px solid var(--border-default);border-radius:99px;cursor:pointer;background:var(--surface-card)" style-hover="border-color:var(--accent);background:var(--surface-hover)">
+        <div onClick="{{ doSignOut }}" class="{{ rolePillCls }}" title="Sign out (role comes from staff allowlist JWT)" style="display:flex;align-items:center;gap:7px;height:34px;flex:none;padding:0 12px;border:1px solid var(--border-default);border-radius:99px;cursor:pointer;background:var(--surface-card)" style-hover="border-color:var(--accent);background:var(--surface-hover)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
           <span style="font-size:11.5px;font-weight:600;color:var(--text-strong);white-space:nowrap">{{ roleShort }}</span>
         </div>
@@ -1952,31 +1978,56 @@ class Component extends DCLogic {
     fNStatus: 'all', fNUrg: 'all',
     fDStatus: 'all', fDType: 'all',
     fRLevel: 'all', fRStatus: 'active', fROwner: 'all',
-    matchOverrides: {}, riskOverrides: {}
+    matchOverrides: {}, riskOverrides: {},
+    authStatus: 'loading', authMessage: '', loginEmail: '', loginPassword: '', loginBusy: false,
+    sessionRole: null, sessionStaffName: null
   };
-  // Prototype persistence: match/risk overrides survive reload via localStorage.
-  // Phase 1 backend wiring will replace this with real POSTs + a server-side audit log.
-  QMOS_LS_KEY = 'qmos.prototype.overrides.v1';
-  loadOverrides() {
+  async bootAuth() {
     try {
-      const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(this.QMOS_LS_KEY) : null;
-      if (!raw) return null;
-      const parsed = JSON.parse(raw);
-      return { matchOverrides: parsed.matchOverrides || {}, riskOverrides: parsed.riskOverrides || {} };
-    } catch (e) { return null; }
+      const api = await import('./qmos-api.js');
+      this._api = api;
+      const session = await api.getSession();
+      if (!session) {
+        this.setState({ authStatus: 'login', authMessage: '', db: null });
+        return;
+      }
+      const role = api.roleFromSession(session);
+      if (!role) {
+        this.setState({
+          authStatus: 'denied',
+          authMessage: 'You’re signed in but not on the QualifierManageOS staff allowlist. Ask an Admin to add your email on staff (active).',
+          db: null
+        });
+        return;
+      }
+      await this.loadLiveDb(role, api.staffNameFromSession(session));
+    } catch (e) {
+      console.error('QMOS auth boot failed', e);
+      this.setState({
+        authStatus: 'login',
+        authMessage: (e && e.message) || 'Could not start session.',
+        db: null
+      });
+    }
   }
-  saveOverrides() {
-    try {
-      if (typeof localStorage === 'undefined') return;
-      localStorage.setItem(this.QMOS_LS_KEY, JSON.stringify({
-        matchOverrides: this.state.matchOverrides,
-        riskOverrides: this.state.riskOverrides
-      }));
-    } catch (e) { /* quota or disabled — prototype degrades to in-memory */ }
+  async loadLiveDb(role, staffName) {
+    const api = this._api || await import('./qmos-api.js');
+    this._api = api;
+    const db = await api.hydrate();
+    this._idx = null; this._av = null;
+    this.setState({
+      authStatus: 'ready',
+      authMessage: '',
+      db,
+      sessionRole: role,
+      sessionStaffName: staffName || null,
+      roleOverride: null,
+      matchOverrides: {},
+      riskOverrides: {}
+    }, () => this.startCount());
   }
   componentDidMount() {
-    const restored = this.loadOverrides() || {};
-    import('./data.js').then(m => this.setState({ db: m, ...restored }, () => this.startCount())).catch(e => console.error('QMOS data load failed', e));
+    this.bootAuth();
   }
   componentWillUnmount(){ cancelAnimationFrame(this._raf); clearTimeout(this._ct); clearInterval(this._ta); clearTimeout(this._cel); clearTimeout(this._mapT); }
   componentDidUpdate(){
@@ -2122,9 +2173,9 @@ class Component extends DCLogic {
     reports: 'M3 3v18h18M18 17V9M13 17V5M8 17v-3',
     settings: 'M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4'
   };
-  // ---------- effective (mutable) collections ----------
-  effMatches() { const o = this.state.matchOverrides; return this.state.db.MATCHES.map(m => ({ ...m, ...(o[m.id] || {}) })); }
-  effRisks() { const o = this.state.riskOverrides; return this.state.db.RISKS.map(r => ({ ...r, ...(o[r.id] || {}) })); }
+  // ---------- effective collections (live rows; overrides unused after API wire) ----------
+  effMatches() { return (this.state.db && this.state.db.MATCHES) ? this.state.db.MATCHES : []; }
+  effRisks() { return (this.state.db && this.state.db.RISKS) ? this.state.db.RISKS : []; }
   idx() {
     if (!this._idx && this.state.db) {
       const q = {}, l = {}, lq = {}, dl = {};
@@ -2161,29 +2212,52 @@ class Component extends DCLogic {
     return null;
   }
   approveMatch(id, status) {
-    return () => {
-      const user = this.ROLE_USERS[this.props.role ?? 'Admin'];
-      const o = { ...this.state.matchOverrides, [id]: { adminApprovalStatus: status, reviewedBy: user, reviewedDate: '2026-07-24' } };
-      this.setState({ matchOverrides: o }, () => this.saveOverrides());
-      const scope = ' (prototype session — backend audit log lands with Phase 1 wiring)';
-      if (status === 'Approved') this.celebrateNow('Match ' + id + ' approved by ' + user + ' — placement can advance. Decision recorded' + scope + '.');
-      else this.say('Match ' + id + ' marked ' + status + ' by ' + user + ' — decision recorded' + scope + '.');
+    return async () => {
+      try {
+        const api = this._api || await import('./qmos-api.js');
+        const row = await api.approveMatch(id, status);
+        const mapped = {
+          adminApprovalStatus: row.adminApprovalStatus || status,
+          reviewedBy: row.reviewedBy || this.state.sessionStaffName,
+          reviewedDate: row.reviewedDate
+        };
+        const MATCHES = this.state.db.MATCHES.map(m => m.id === id ? { ...m, ...mapped } : m);
+        this._idx = null;
+        const user = mapped.reviewedBy || this.state.sessionStaffName || 'staff';
+        this.setState({ db: { ...this.state.db, MATCHES } });
+        if (status === 'Approved') this.celebrateNow('Match ' + id + ' approved by ' + user + ' — placement can advance. Decision recorded.');
+        else this.say('Match ' + id + ' marked ' + status + ' by ' + user + ' — decision recorded.');
+      } catch (e) {
+        this.say((e && e.message) || 'Match approval failed.');
+      }
     };
   }
   setRisk(id, status) {
-    return () => {
-      const o = { ...this.state.riskOverrides, [id]: { riskStatus: status } };
-      this.setState({ riskOverrides: o }, () => this.saveOverrides());
-      this.say('Risk ' + id + ' → ' + status + '. Recorded (prototype session — backend audit log lands with Phase 1 wiring).');
+    return async () => {
+      try {
+        const api = this._api || await import('./qmos-api.js');
+        const row = await api.setRisk(id, status);
+        const RISKS = this.state.db.RISKS.map(r => r.id === id ? { ...r, riskStatus: row.riskStatus || status } : r);
+        this.setState({ db: { ...this.state.db, RISKS } });
+        this.say('Risk ' + id + ' → ' + status + '. Decision recorded.');
+      } catch (e) {
+        this.say((e && e.message) || 'Risk update failed.');
+      }
     };
   }
   // ---------- renderVals ----------
   renderVals() {
-    const S = this.state, theme = S.themeOverride ?? this.props.theme ?? 'light', role = S.roleOverride ?? this.props.role ?? 'Admin';
+    const S = this.state, theme = S.themeOverride ?? this.props.theme ?? 'light';
+    const role = S.sessionRole || S.roleOverride || this.props.role || 'Admin';
     const canAdmin = role === 'Leadership' || role === 'Admin';
     const canEditRisk = role !== 'Sales Viewer';
-    const roleUser = this.ROLE_USERS[role] || 'Dana Whitfield';
+    const roleUser = S.sessionStaffName || this.ROLE_USERS[role] || 'Staff';
     const view = S.view;
+    const authStatus = S.authStatus || 'loading';
+    const authGate = authStatus !== 'ready';
+    const authLoading = authStatus === 'loading';
+    const authLogin = authStatus === 'login';
+    const authDenied = authStatus === 'denied';
     const crumbs = { dashboard: 'DASHBOARD', qualifiers: 'QUALIFIERS', 'qualifier-detail': 'QUALIFIERS / PROFILE', licenses: 'LICENSES', 'license-detail': 'LICENSES / RECORD', coverage: 'COVERAGE MAP', availability: 'AVAILABILITY', needs: 'PLACEMENT NEEDS', opportunities: 'OPPORTUNITIES', match: 'MATCH CENTER', placements: 'ACTIVE PLACEMENTS', documents: 'DOCUMENTS', risk: 'RISK REVIEW', reports: 'REPORTS', settings: 'SETTINGS' };
     const db = S.db;
     const navBase = 'display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:11px;cursor:pointer;font-size:13px;font-weight:500;transition:var(--transition);';
@@ -2216,8 +2290,42 @@ class Component extends DCLogic {
       sideText: (theme === 'dark' ? '#c4d2d6' : 'var(--text-muted)'), sideFaint: (theme === 'dark' ? '#93a3b8' : 'var(--text-subtle)'),
       roleShort: role, themeIcon: (theme === 'dark' ? 'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4' : 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'),
       toggleTheme: () => this.setState(s => ({ themeOverride: ((s.themeOverride ?? this.props.theme ?? 'light') === 'dark') ? 'light' : 'dark' })),
-      cycleRole: () => { const RL = ['Leadership', 'Admin', 'Placement Coordinator', 'Fulfillment', 'Sales Viewer']; const cur = this.state.roleOverride ?? this.props.role ?? 'Admin'; const nx = RL[(RL.indexOf(cur) + 1) % RL.length]; this.setState(s => ({ roleOverride: nx, roleBump: (s.roleBump || 0) + 1 })); this.say('Now viewing as ' + nx + (nx === 'Sales Viewer' ? ' — admin notes & internal risk detail are hidden.' : '.')); },
-      canAdmin, canEditRisk, crumb: crumbs[view] || 'DASHBOARD', today: 'Jul 24, 2026', todayCaps: 'JUL 24, 2026',
+      authGate, authLoading, authLogin, authDenied, authMessage: S.authMessage || '',
+      hasAuthError: !!(S.authMessage && authLogin),
+      loginEmail: S.loginEmail || '', loginPassword: S.loginPassword || '',
+      loginBtn: S.loginBusy ? 'Signing in…' : 'Sign in',
+      setLoginEmail: e => this.setState({ loginEmail: e.target.value }),
+      setLoginPassword: e => this.setState({ loginPassword: e.target.value }),
+      doLogin: async () => {
+        if (S.loginBusy) return;
+        this.setState({ loginBusy: true, authMessage: '' });
+        try {
+          const api = this._api || await import('./qmos-api.js');
+          this._api = api;
+          const session = await api.signIn(S.loginEmail, S.loginPassword);
+          await this.loadLiveDb(api.roleFromSession(session), api.staffNameFromSession(session));
+        } catch (e) {
+          const code = e && e.code;
+          if (code === 'not_allowlisted') {
+            this.setState({ authStatus: 'denied', authMessage: e.message, loginBusy: false, loginPassword: '' });
+          } else {
+            this.setState({ authStatus: 'login', authMessage: (e && e.message) || 'Sign-in failed.', loginBusy: false });
+          }
+        }
+      },
+      doSignOut: async () => {
+        try {
+          const api = this._api || await import('./qmos-api.js');
+          await api.signOut();
+        } catch (e) { /* ignore */ }
+        this.setState({
+          authStatus: 'login', authMessage: '', db: null, sessionRole: null, sessionStaffName: null,
+          loginPassword: '', loginBusy: false, matchOverrides: {}, riskOverrides: {}
+        });
+      },
+      canAdmin, canEditRisk, crumb: crumbs[view] || 'DASHBOARD',
+      today: (S.db && S.db.TODAY) ? S.db.TODAY : new Date().toISOString().slice(0, 10),
+      todayCaps: ((S.db && S.db.TODAY) ? S.db.TODAY : new Date().toISOString().slice(0, 10)).toUpperCase(),
       vDash: view === 'dashboard', vQual: view === 'qualifiers', vQdet: view === 'qualifier-detail', vLic: view === 'licenses', vLdet: view === 'license-detail', vAvail: view === 'availability', vNeeds: view === 'needs', vOpp: view === 'opportunities', vMatch: view === 'match', vPlace: view === 'placements', vCoverage: view === 'coverage', vDocs: view === 'documents', vRisk: view === 'risk', vReports: view === 'reports', vSettings: view === 'settings',
       hasToast: !!S.toast, toastMsg: S.toast,
       brandGo: this.go('dashboard'), bellGo: this.go('risk'), goRisk: this.go('risk'), goMatch: this.go('match'), goLic: this.go('licenses'), goQual: this.go('qualifiers'), goPlace: this.go('placements'), goDocs: this.go('documents'), goOpp: this.go('opportunities'), backQ: this.go('qualifiers'),
@@ -2303,9 +2411,9 @@ class Component extends DCLogic {
     const pctOf = pts => { const a = pts.split('/').map(Number); return a[1] ? a[0] / a[1] : 0; };
     const cats = [['License health', 'License compliance', 'ok'], ['Documents', 'Document readiness', 'hr'], ['Availability', 'Availability', 'hr'], ['Verification', 'Background & credit', 'ok'], ['Review record', 'Placement readiness', 'ok']];
     base.readiness = {
-      avg: Math.round((Q.reduce((s, q) => s + q.readiness.score, 0) / Q.length) * cp),
+      avg: Q.length ? Math.round((Q.reduce((s, q) => s + ((q.readiness && q.readiness.score) || 0), 0) / Q.length) * cp) : 0,
       ringBs: 'background:conic-gradient(from 200deg,#1aa6a6,#355a92 36%,#7c4dd0 66%,#e0559f 90%,#1aa6a6)',
-      bars: cats.map(([key, label, tone]) => { const vals = Q.map(q => { const p = q.readiness.parts.find(x => x.k === key); return p ? pctOf(p.pts) : null; }).filter(v => v != null); const avg = Math.round(vals.reduce((s, v) => s + v, 0) / vals.length * 100); return { label, scoreTxt: avg + ' / 100', barBs: 'width:' + avg + '%;' + this.hue(tone) }; })
+      bars: cats.map(([key, label, tone]) => { const vals = Q.map(q => { const p = q.readiness && q.readiness.parts && q.readiness.parts.find(x => x.k === key); return p ? pctOf(p.pts) : null; }).filter(v => v != null); const avg = vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length * 100) : 0; return { label, scoreTxt: avg + ' / 100', barBs: 'width:' + avg + '%;' + this.hue(tone) }; })
     };
     // priority actions
     const prio = [];

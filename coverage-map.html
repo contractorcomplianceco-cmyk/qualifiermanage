@@ -72,12 +72,25 @@
     document.body.setAttribute('data-theme', theme);
     document.body.setAttribute('data-motion', motion);
 
-    // Load seed data — same data.js used by the shell so the map stays in sync.
+    // Load live data under RLS (same API as the shell). Honest empty if tables are empty.
     let data;
     try {
-      data = await import('./data.js');
+      const api = await import('./qmos-api.js');
+      const session = await api.getSession();
+      if (!session) {
+        document.getElementById('empty').textContent = 'Sign in required in the main app first.';
+        document.getElementById('empty').style.display = 'flex';
+        throw new Error('no_session');
+      }
+      if (!api.roleFromSession(session)) {
+        document.getElementById('empty').textContent = 'Not on the QualifierManageOS staff allowlist.';
+        document.getElementById('empty').style.display = 'flex';
+        throw new Error('not_allowlisted');
+      }
+      data = await api.hydrate();
     } catch (e) {
-      document.getElementById('empty').textContent = 'Unable to load seed data.';
+      if (e && (e.message === 'no_session' || e.message === 'not_allowlisted')) throw e;
+      document.getElementById('empty').textContent = 'Unable to load live map data.';
       document.getElementById('empty').style.display = 'flex';
       throw e;
     }
