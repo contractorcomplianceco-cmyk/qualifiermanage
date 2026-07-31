@@ -10,6 +10,10 @@
 
 ---
 
+## Collision fix (required before shape yes)
+
+`data.js` more* previously reused **R-609 / R-610**, which collide with 0009’s additive Resolved/Dismissed demo rows. Those more* rows are now **R-613 / R-614** in both `data.js` and `0012`. This file **does not** `INSERT`/`UPDATE` R-609 or R-610, so the live Resolved/Dismissed branches survive apply.
+
 ## Why now
 
 Base seed proved API/RLS/allowlist/end-to-end. Bulk adds production-scale license/qualifier volume for Coverage Map density, Licenses register scrolling, and leaderboard realism — still `[INTERNAL ONLY]`, still no seams.
@@ -31,7 +35,7 @@ Debounce on approve/setRisk landed first so bulk volume does not multiply double
 | `matches` | 8 | **11** | |
 | `placements` | 4 | **10** | |
 | `reviews` | 5 | **10** | |
-| `risks` | 10 (incl. R-609/R-610) | **≥12** | upserts data.js risks; **keeps** R-609/R-610 |
+| `risks` | 10 (incl. R-609/R-610) | **14** | data.js risks use **R-613/R-614** (not 609/610); **0009 R-609/R-610 untouched** |
 | `cities` | 10 | **26** | |
 | `coverage_gaps` | 1 | **5** | all need_ids exist in needs |
 
@@ -76,5 +80,5 @@ Real Auth allowlist rows (`Carmen Bootstrap`, `Sales Viewer Test`, …) **untouc
 ## Ask-backs
 
 1. Full `data.js` composition (more* + bulk), not bulk-arrays-only — **Y/N**  
-2. Keep R-609/R-610 from base seed — **Y/N**  
+2. Keep 0009 R-609/R-610 (Resolved/Dismissed); more* risks as R-613/R-614 — **Y/N** (fixed in SQL)  
 3. Apply only after separate yes — **Y/N**

@@ -2,52 +2,52 @@
 -- STATUS: PROPOSAL ONLY — do not apply until Rose yes on shape, then separate yes to apply.
 -- Source: data.js composition (base already applied in 0009 + data.js more* + data.bulk.js).
 -- Companion: migrations/SEED_BULK_V1_PROPOSAL.md
--- Tip baseline when drafted: 0efb68243a3e91f7848b5849cc89926980962d01
+-- Tip baseline (collision fix): post-0efb682 renumber moreR R-609/R-610 → R-613/R-614
+--
+-- COLLISION FIX (Rose 2026-07-30):
+--   0009 additive R-609 (Resolved) / R-610 (Dismissed) MUST NOT be upserted by this file.
+--   data.js more* risks that previously used those IDs are now R-613 / R-614.
 --
 -- Rules:
 --   * Demo staff (incl. Nina Cole / Leo Park) use @example.com — never real domains.
 --   * Real Auth allowlist rows untouched (ON CONFLICT (name) DO NOTHING on staff).
 --   * Idempotent upserts on entity PKs; safe to re-run after 0009.
---   * No seams. No fabricated finance. auditengine_id left NULL.
+--   * No seams. auditengine_id left NULL.
 --   * Does NOT clear decision_audit_log.
 
 BEGIN;
 
--- ---------------------------------------------------------------------------
--- Demo staff (full roster from data.js — @example.com only)
--- ---------------------------------------------------------------------------
--- DEMO-ONLY staff (not a live Auth allowlist identity)
+-- Demo staff (@example.com only)
+-- DEMO-ONLY staff
 INSERT INTO staff (name, role, email, active)
 VALUES ('Rose Martinez', 'Leadership', 'demo.rose.martinez@example.com', true)
 ON CONFLICT (name) DO NOTHING;
--- DEMO-ONLY staff (not a live Auth allowlist identity)
+-- DEMO-ONLY staff
 INSERT INTO staff (name, role, email, active)
 VALUES ('Dana Whitfield', 'Admin', 'demo.dana.whitfield@example.com', true)
 ON CONFLICT (name) DO NOTHING;
--- DEMO-ONLY staff (not a live Auth allowlist identity)
+-- DEMO-ONLY staff
 INSERT INTO staff (name, role, email, active)
 VALUES ('Carmen Delgado', 'Placement Coordinator', 'demo.carmen.delgado@example.com', true)
 ON CONFLICT (name) DO NOTHING;
--- DEMO-ONLY staff (not a live Auth allowlist identity)
+-- DEMO-ONLY staff
 INSERT INTO staff (name, role, email, active)
 VALUES ('Marcus Lee', 'Fulfillment', 'demo.marcus.lee@example.com', true)
 ON CONFLICT (name) DO NOTHING;
--- DEMO-ONLY staff (not a live Auth allowlist identity)
+-- DEMO-ONLY staff
 INSERT INTO staff (name, role, email, active)
 VALUES ('Kim Sato', 'Sales Viewer', 'demo.kim.sato@example.com', true)
 ON CONFLICT (name) DO NOTHING;
--- DEMO-ONLY staff (not a live Auth allowlist identity)
+-- DEMO-ONLY staff
 INSERT INTO staff (name, role, email, active)
 VALUES ('Nina Cole', 'Placement Coordinator', 'demo.nina.cole@example.com', true)
 ON CONFLICT (name) DO NOTHING;
--- DEMO-ONLY staff (not a live Auth allowlist identity)
+-- DEMO-ONLY staff
 INSERT INTO staff (name, role, email, active)
 VALUES ('Leo Park', 'Fulfillment', 'demo.leo.park@example.com', true)
 ON CONFLICT (name) DO NOTHING;
 
--- ---------------------------------------------------------------------------
--- Cities (full map set)
--- ---------------------------------------------------------------------------
+-- Cities
 INSERT INTO cities (city, lng, lat) VALUES ('Tampa', -82.4572, 27.9506)
 ON CONFLICT (city) DO UPDATE SET lng = EXCLUDED.lng, lat = EXCLUDED.lat;
 INSERT INTO cities (city, lng, lat) VALUES ('Austin', -97.7431, 30.2672)
@@ -100,8 +100,6 @@ INSERT INTO cities (city, lng, lat) VALUES ('Detroit', -83.0458, 42.3314)
 ON CONFLICT (city) DO UPDATE SET lng = EXCLUDED.lng, lat = EXCLUDED.lat;
 INSERT INTO cities (city, lng, lat) VALUES ('Oklahoma City', -97.5164, 35.4676)
 ON CONFLICT (city) DO UPDATE SET lng = EXCLUDED.lng, lat = EXCLUDED.lat;
-
--- Qualifiers (289)
 INSERT INTO qualifiers (
   id, full_name, preferred_name, email, phone, city, state_of_residence, timezone,
   status, verification_status, background_check_status, credit_check_status,
@@ -6171,8 +6169,6 @@ ON CONFLICT (id) DO UPDATE SET
   minimum_monthly_compensation = EXCLUDED.minimum_monthly_compensation, open_to_negotiation = EXCLUDED.open_to_negotiation,
   internal_owner = EXCLUDED.internal_owner, last_reviewed_date = EXCLUDED.last_reviewed_date, next_review_due = EXCLUDED.next_review_due,
   admin_only_notes = EXCLUDED.admin_only_notes, readiness_score = EXCLUDED.readiness_score, updated_at = now();
-
--- Licenses (1039)
 INSERT INTO licenses (
   id, qualifier_id, state, license_number, license_type, trade_classification, license_status,
   issue_date, expiration_date, last_verified_date, verification_source, restrictions,
@@ -23836,8 +23832,6 @@ ON CONFLICT (id) DO UPDATE SET
   last_verified_date = EXCLUDED.last_verified_date, verification_source = EXCLUDED.verification_source,
   restrictions = EXCLUDED.restrictions, can_be_used_for_placement = EXCLUDED.can_be_used_for_placement,
   license_health_status = EXCLUDED.license_health_status, updated_at = now();
-
--- Availability (289)
 INSERT INTO availability (
   id, qualifier_id, availability_status, available_start_date, available_end_date,
   preferred_states, preferred_trades, max_active_placements, current_placement_count,
@@ -28173,8 +28167,6 @@ ON CONFLICT (id) DO UPDATE SET
   preferred_states = EXCLUDED.preferred_states, preferred_trades = EXCLUDED.preferred_trades,
   max_active_placements = EXCLUDED.max_active_placements, current_placement_count = EXCLUDED.current_placement_count,
   remote_ok = EXCLUDED.remote_ok, in_person_required = EXCLUDED.in_person_required, notes = EXCLUDED.notes, updated_at = now();
-
--- Documents (234)
 INSERT INTO documents (
   id, qualifier_id, related_license_id, document_type, document_status, expiration_date, file_link, internal_notes
 ) VALUES (
@@ -30749,8 +30741,6 @@ ON CONFLICT (id) DO UPDATE SET
   document_type = EXCLUDED.document_type, document_status = EXCLUDED.document_status,
   expiration_date = EXCLUDED.expiration_date, file_link = EXCLUDED.file_link,
   internal_notes = EXCLUDED.internal_notes, updated_at = now();
-
--- Needs (12)
 INSERT INTO needs (
   id, company_name, contact_name, needed_state, needed_trade_classification, need_status,
   target_start_date, expected_duration, monthly_offer_amount, setup_signing_amount, urgency_level,
@@ -30943,8 +30933,6 @@ ON CONFLICT (id) DO UPDATE SET
   monthly_offer_amount = EXCLUDED.monthly_offer_amount, setup_signing_amount = EXCLUDED.setup_signing_amount,
   urgency_level = EXCLUDED.urgency_level, required_documents = EXCLUDED.required_documents,
   placement_owner = EXCLUDED.placement_owner, admin_review_status = EXCLUDED.admin_review_status, updated_at = now();
-
--- Matches (11)
 INSERT INTO matches (
   id, placement_need_id, qualifier_id, qualifier_license_id, match_status, fit_score,
   admin_approval_status, reviewed_by, reviewed_date, match_reason, ineligibility_reason, factors
@@ -31110,8 +31098,6 @@ ON CONFLICT (id) DO UPDATE SET
   reviewed_by = EXCLUDED.reviewed_by, reviewed_date = EXCLUDED.reviewed_date,
   match_reason = EXCLUDED.match_reason, ineligibility_reason = EXCLUDED.ineligibility_reason,
   factors = EXCLUDED.factors, updated_at = now();
-
--- Placements (10)
 INSERT INTO placements (
   id, company_name, qualifier_id, placement_need_id, placement_match_id, placement_status,
   start_date, expected_end_date, actual_end_date, monthly_fee, qualifier_monthly_compensation, cca_monthly_fee,
@@ -31291,7 +31277,7 @@ INSERT INTO placements (
   'P-410', 'Beacon Hill Restoration', 'Q-021', NULL, NULL,
   'At Risk', '2025-12-01', '2026-12-01', NULL,
   7200, 5200, 2000,
-  true, false, '2026-10-01', 'Client raised a service concern (R-610). Recovering — monitor closely.'
+  true, false, '2026-10-01', 'Client raised a service concern (R-614). Recovering — monitor closely.'
 )
 ON CONFLICT (id) DO UPDATE SET
   company_name = EXCLUDED.company_name, qualifier_id = EXCLUDED.qualifier_id,
@@ -31302,8 +31288,6 @@ ON CONFLICT (id) DO UPDATE SET
   cca_monthly_fee = EXCLUDED.cca_monthly_fee, backup_qualifier_needed = EXCLUDED.backup_qualifier_needed,
   backup_qualifier_identified = EXCLUDED.backup_qualifier_identified, renewal_review_date = EXCLUDED.renewal_review_date,
   internal_placement_notes = EXCLUDED.internal_placement_notes, updated_at = now();
-
--- Reviews (10)
 INSERT INTO reviews (
   id, qualifier_id, related_placement_id, review_type, reliability_rating, communication_rating,
   document_readiness_rating, review_notes, admin_only, reviewed_by, review_date
@@ -31445,7 +31429,8 @@ ON CONFLICT (id) DO UPDATE SET
   review_notes = EXCLUDED.review_notes, admin_only = EXCLUDED.admin_only,
   reviewed_by = EXCLUDED.reviewed_by, review_date = EXCLUDED.review_date, updated_at = now();
 
--- Risks (12) — does not remove R-609/R-610 additive from 0009
+-- Risks from data.js (R-601..R-608 base + R-611..R-614 more*).
+-- Intentionally OMITS upserts for R-609/R-610 so 0009 Resolved/Dismissed rows survive.
 INSERT INTO risks (
   id, related_qualifier_id, related_placement_need_id, related_active_placement_id,
   risk_type, risk_level, risk_status, owner, due_date, resolution_notes
@@ -31546,7 +31531,7 @@ INSERT INTO risks (
   id, related_qualifier_id, related_placement_need_id, related_active_placement_id,
   risk_type, risk_level, risk_status, owner, due_date, resolution_notes
 ) VALUES (
-  'R-609', 'Q-020', NULL, NULL,
+  'R-613', 'Q-020', NULL, NULL,
   'Missing Documents', 'Medium', 'Open', 'Leo Park', '2026-08-08', 'ID outstanding — blocks Jacksonville intake verification.'
 )
 ON CONFLICT (id) DO UPDATE SET
@@ -31558,7 +31543,7 @@ INSERT INTO risks (
   id, related_qualifier_id, related_placement_need_id, related_active_placement_id,
   risk_type, risk_level, risk_status, owner, due_date, resolution_notes
 ) VALUES (
-  'R-610', 'Q-021', NULL, 'P-410',
+  'R-614', 'Q-021', NULL, 'P-410',
   'Client Service Concern', 'High', 'In Review', 'Rose Martinez', '2026-08-05', 'Beacon Hill flagged scheduling. Recovery plan in place; re-check 8/5.'
 )
 ON CONFLICT (id) DO UPDATE SET
@@ -31590,8 +31575,6 @@ ON CONFLICT (id) DO UPDATE SET
   related_active_placement_id = EXCLUDED.related_active_placement_id, risk_type = EXCLUDED.risk_type,
   risk_level = EXCLUDED.risk_level, risk_status = EXCLUDED.risk_status, owner = EXCLUDED.owner,
   due_date = EXCLUDED.due_date, resolution_notes = EXCLUDED.resolution_notes, updated_at = now();
-
--- Coverage gaps (full prototype set; need_ids exist in data.js needs)
 INSERT INTO coverage_gaps (id, state, city, reason, open_needs, severity, need_id)
 VALUES ('a0000000-0000-4000-8000-000000000209', 'MI', 'Detroit', 'Emergency GC need, zero MI bench', 1, 'high', 'N-209')
 ON CONFLICT (id) DO UPDATE SET
@@ -31621,7 +31604,7 @@ ON CONFLICT (id) DO UPDATE SET
 INSERT INTO qmos_schema_migrations (id, notes)
 VALUES (
   '0012_seed_bulk_v1',
-  'Bulk volume seed from data.js (more* + data.bulk.js); demo staff @example.com; keep R-609/R-610'
+  'Bulk seed from data.js; moreR uses R-613/R-614 (not R-609/R-610); preserves 0009 Resolved/Dismissed'
 )
 ON CONFLICT (id) DO NOTHING;
 
