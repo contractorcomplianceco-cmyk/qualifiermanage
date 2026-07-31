@@ -13,6 +13,8 @@
 | `RLS_V1_PROPOSAL.md` | Human-readable matrix + decisions for Rose review |
 | `0003_rls_grant_hygiene.sql` | Post-0002 grant hygiene (anon zero; column INSERT/UPDATE; views SELECT-only) |
 | `0004_p0_admin_rpc_anon_execute.sql` | **P0** — revoke anon EXECUTE on admin DEFINER RPCs; fail-closed guards |
+| `AUTH_ALLOWLIST_V1_PROPOSAL.md` | Staff allowlist auth v1 — human proposal for Rose (shape review) |
+| `0005_staff_allowlist_auth_v1.sql` | Staff allowlist auth v1 — **proposal / not applied until Rose yes** |
 
 ## Apply (when Rose says yes — env NAMES only)
 
@@ -28,7 +30,7 @@
 ## Out of scope for 0001 (next slices — need Rose yes)
 
 - RLS policies → see `0002_qmos_rls_v1.sql` + `RLS_V1_PROPOSAL.md` (propose first; apply only after separate yes)
-- Staff email/password allowlist auth tables + invite flow (must issue JWT claims `qmos_role` for 0002 policies to admit staff)
+- Staff email/password allowlist auth → see `0005_staff_allowlist_auth_v1.sql` + `AUTH_ALLOWLIST_V1_PROPOSAL.md` (propose first; apply only after separate yes)
 - Read/write API replacing `import('./data.js')`
 - Seed load / retiring `data.bulk.js`
 - AuditEngine / DocumentCollection sync seams (stay OFF)
