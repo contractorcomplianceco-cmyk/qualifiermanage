@@ -26,6 +26,7 @@
 | `0011_set_risk_no_returning_star.sql` | Hotfix: set_risk RETURNING only granted columns |
 | `SEED_BULK_V1_PROPOSAL.md` | Bulk volume seed — human proposal for Rose |
 | `0012_seed_bulk_v1.sql` | Bulk seed from data.js — **proposal / not applied until Rose yes** |
+| `SYNC_INTEGRATIONS_V1_PROPOSAL.md` | Sync integrations — systems / direction / triggers (**proposal only; no build**) |
 
 ## Apply (when Rose says yes — env NAMES only)
 

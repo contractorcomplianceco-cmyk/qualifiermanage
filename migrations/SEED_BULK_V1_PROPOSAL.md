@@ -4,9 +4,10 @@
 **Audience:** `[INTERNAL ONLY]`  
 **Sequencing:** shape yes → separate apply yes  
 **Depends on:** live `0009` base seed (+ `0010`/`0011` set_risk fixes); client debounce shipped (`0efb682`)  
-**Tip baseline when drafted:** `0efb68243a3e91f7848b5849cc89926980962d01`  
+**Tip baseline (collision fix):** `f74d683da32b1e5798560524df8241062c02abff`  
 **SQL:** `migrations/0012_seed_bulk_v1.sql` (~2.1 MB, generated from `data.js`)  
-**Source:** full `data.js` composition = base (already live) + hand `more*` + `data.bulk.js`
+**Source:** full `data.js` composition = base (already live) + hand `more*` + `data.bulk.js`  
+**Live journal:** still ends at `0011` — **0012 not applied** until shape yes + separate apply yes
 
 ---
 
