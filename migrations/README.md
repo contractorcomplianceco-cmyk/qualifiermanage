@@ -20,6 +20,8 @@
 | `AUTH_PROVISIONING.md` | How staff Auth accounts are created (service_role / Dashboard; signup off) |
 | `0007_api_write_rpcs_v1.sql` | API write RPCs (approve_match / set_risk + audit INSERT widen) |
 | `0008_view_staff_filter.sql` | DEFINER views: WHERE qmos_is_staff() for non-allowlisted empty |
+| `SEED_V1_PROPOSAL.md` | Base seed v1 — human proposal for Rose (shape review) |
+| `0009_seed_base_v1.sql` | Base seed from `data.base.js` — **proposal / not applied until Rose yes** |
 
 ## Apply (when Rose says yes — env NAMES only)
 
