@@ -93,7 +93,10 @@ Until that toggle is on, JWTs will not carry `qmos_role` even if the function ex
 
 - `GRANT EXECUTE ON FUNCTION qmos_custom_access_token_hook(jsonb) TO supabase_auth_admin`
 - `REVOKE ALL … FROM PUBLIC, anon, authenticated` (same hygiene lesson as 0004)
-- `GRANT SELECT` (and limited `UPDATE` for `auth_user_id` stamp) on `staff` **to `supabase_auth_admin`** so the hook can read the allowlist (Auth admin bypasses RLS, but table privilege is still required)
+- `GRANT SELECT` (and limited `UPDATE` for `auth_user_id` stamp) on `staff` **to `supabase_auth_admin`** so the hook can read/update the allowlist  
+- Hook is **INVOKER** (not `SECURITY DEFINER`). GoTrue runs it as `supabase_auth_admin`.
+  - **Correction (live 0006):** on this project `supabase_auth_admin.rolbypassrls = false`, so FORCE RLS still applies. `0006` adds `staff` policies for `supabase_auth_admin` SELECT/UPDATE so the hook can read/stamp the allowlist without switching to DEFINER.
+  - Hook is **VOLATILE** (not STABLE) because it may `UPDATE staff.auth_user_id` on first match.
 
 ### Role change latency
 

@@ -15,6 +15,7 @@
 | `0004_p0_admin_rpc_anon_execute.sql` | **P0** — revoke anon EXECUTE on admin DEFINER RPCs; fail-closed guards |
 | `AUTH_ALLOWLIST_V1_PROPOSAL.md` | Staff allowlist auth v1 — human proposal for Rose (shape review) |
 | `0005_staff_allowlist_auth_v1.sql` | Staff allowlist auth v1 — **proposal / not applied until Rose yes** |
+| `0006_allowlist_hook_force_rls_fix.sql` | Hotfix after 0005 apply — auth_admin staff policies + VOLATILE hook |
 
 ## Apply (when Rose says yes — env NAMES only)
 
