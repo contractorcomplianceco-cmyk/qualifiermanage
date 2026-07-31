@@ -23,6 +23,7 @@
 | `SEED_V1_PROPOSAL.md` | Base seed v1 — human proposal for Rose (shape review) |
 | `0009_seed_base_v1.sql` | Base seed from `data.base.js` (applied) |
 | `0010_set_risk_return_jsonb.sql` | Hotfix: set_risk returns jsonb without resolution_notes |
+| `0011_set_risk_no_returning_star.sql` | Hotfix: set_risk RETURNING only granted columns |
 
 ## Apply (when Rose says yes — env NAMES only)
 
