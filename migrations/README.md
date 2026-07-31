@@ -16,6 +16,8 @@
 | `AUTH_ALLOWLIST_V1_PROPOSAL.md` | Staff allowlist auth v1 — human proposal for Rose (shape review) |
 | `0005_staff_allowlist_auth_v1.sql` | Staff allowlist auth v1 — **proposal / not applied until Rose yes** |
 | `0006_allowlist_hook_force_rls_fix.sql` | Hotfix after 0005 apply — auth_admin staff policies + VOLATILE hook |
+| `API_V1_PROPOSAL.md` | Read/write API v1 — human proposal for Rose (shape review) |
+| `0007_api_write_rpcs_v1.sql` | API write RPCs — **proposal / not applied until Rose yes** |
 
 ## Apply (when Rose says yes — env NAMES only)
 
@@ -32,7 +34,7 @@
 
 - RLS policies → see `0002_qmos_rls_v1.sql` + `RLS_V1_PROPOSAL.md` (propose first; apply only after separate yes)
 - Staff email/password allowlist auth → see `0005_staff_allowlist_auth_v1.sql` + `AUTH_ALLOWLIST_V1_PROPOSAL.md` (propose first; apply only after separate yes)
-- Read/write API replacing `import('./data.js')`
+- Read/write API replacing `import('./data.js')` → see `API_V1_PROPOSAL.md` + `0007_api_write_rpcs_v1.sql` (propose first; apply/wire only after separate yes)
 - Seed load / retiring `data.bulk.js`
 - AuditEngine / DocumentCollection sync seams (stay OFF)
 
