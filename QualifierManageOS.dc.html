@@ -15,6 +15,8 @@
   <link rel="stylesheet" href="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/tokens/elevation.css">
   <link rel="stylesheet" href="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/styles.css">
   <script src="_ds/cca-design-system-001d633b-65df-471e-95d8-722c0d3e027d/_ds_bundle.js"></script>
+  <script src="https://unpkg.com/d3@7.9.0/dist/d3.min.js" integrity="sha384-CjloA8y00+1SDAUkjs099PVfnY2KmDC2BZnws9kh8D/lX1s46w6EPhpXdqMfjK6i" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/topojson-client@3.1.0/dist/topojson-client.min.js" integrity="sha384-Ukv1p/xTma6P4/2bY5KzWBw+ydSpXmhCMtyciIQVDJ1RmOxtCYNMF1uXT9T63H67" crossorigin="anonymous"></script>
   <style>
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;height:100%}
@@ -38,22 +40,74 @@
     @keyframes qm-red3d{0%,100%{box-shadow:inset 0 1px 1px rgba(255,255,255,.45), 0 5px 12px -4px rgba(226,59,46,.5), 0 0 0 0 rgba(226,59,46,0)}50%{box-shadow:inset 0 1px 1px rgba(255,255,255,.45), 0 5px 12px -4px rgba(226,59,46,.5), 0 0 14px 1px rgba(226,59,46,.55)}}
     .qm-stagger>*{animation:qm-rise .5s var(--ease-out) both}
     .qm-stagger>*:nth-child(1){animation-delay:.02s}.qm-stagger>*:nth-child(2){animation-delay:.06s}.qm-stagger>*:nth-child(3){animation-delay:.10s}.qm-stagger>*:nth-child(4){animation-delay:.14s}.qm-stagger>*:nth-child(5){animation-delay:.18s}.qm-stagger>*:nth-child(6){animation-delay:.22s}.qm-stagger>*:nth-child(7){animation-delay:.26s}.qm-stagger>*:nth-child(8){animation-delay:.30s}.qm-stagger>*:nth-child(9){animation-delay:.34s}.qm-stagger>*:nth-child(10){animation-delay:.38s}
+    @keyframes qm-pop{0%{transform:scale(.55);opacity:0}62%{transform:scale(1.14)}100%{transform:scale(1);opacity:1}}
+    @keyframes qm-badgeGlow{0%,100%{box-shadow:0 0 0 0 rgba(31,157,85,0)}50%{box-shadow:0 0 13px 0 rgba(31,157,85,.55)}}
+    @keyframes qm-flame{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.16) rotate(3deg)}}
+    @keyframes qm-drift{0%{transform:translate(0,0)}33%{transform:translate(28px,20px)}66%{transform:translate(-20px,12px)}100%{transform:translate(0,0)}}
+    @keyframes qm-shine{0%{background-position:-140% 0}100%{background-position:240% 0}}
+    @keyframes qm-grow{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+    @keyframes qm-spot{0%{opacity:0;transform:translateY(10px) scale(.97)}100%{opacity:1;transform:none}}
+    @keyframes qm-ping{0%{transform:scale(.7);opacity:.65}100%{transform:scale(2.6);opacity:0}}
+    @keyframes qm-levelup{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-6px) scale(1.06)}100%{transform:translateY(0) scale(1)}}
+    .qm-cardstagger>*{animation:qm-rise .52s var(--ease-out) both}
+    .qm-cardstagger>*:nth-child(1){animation-delay:.05s}.qm-cardstagger>*:nth-child(2){animation-delay:.15s}.qm-cardstagger>*:nth-child(3){animation-delay:.25s}.qm-cardstagger>*:nth-child(4){animation-delay:.35s}.qm-cardstagger>*:nth-child(5){animation-delay:.45s}.qm-cardstagger>*:nth-child(6){animation-delay:.55s}
+    .qm-btn{transition:transform .12s var(--ease-out),background .16s,box-shadow .16s,border-color .16s}
+    .qm-btn:active{transform:scale(.93)}
+    .qm-pop{animation:qm-pop .34s var(--ease-out) both}
+    .qm-fitbar{transform-origin:left center;animation:qm-grow .9s var(--ease-out) both}
+    .qm-cardrise{animation:qm-rise .5s var(--ease-out) both}
+    .qm-drift1{animation:qm-drift 24s ease-in-out infinite}
+    .qm-drift2{animation:qm-drift 30s ease-in-out infinite reverse}
+    .qm-shine{background:linear-gradient(100deg,transparent 20%,rgba(255,255,255,.55) 50%,transparent 80%);background-size:220% 100%;animation:qm-shine 3.2s ease-in-out infinite}
+    [data-motion="off"] *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
     [data-theme="dark"]{--shadow-card:0 1px 3px rgba(0,0,0,.45),0 0 0 1px rgba(26,166,166,.05);--shadow-card-hover:0 10px 26px rgba(0,0,0,.55),0 0 24px -4px rgba(11,142,142,.24)}
     [data-theme="light"]{--shadow-card:0 1px 2px rgba(19,35,63,.05),0 3px 8px -3px rgba(19,35,63,.08);--shadow-card-hover:0 12px 28px -8px rgba(19,35,63,.16),0 0 22px -8px rgba(11,142,142,.30)}
     @media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;animation-iteration-count:1!important}}
+    @keyframes qm-rp{0%{transform:scale(.92)}55%{transform:scale(1.07)}100%{transform:scale(1)}}
+    @keyframes qm-rp2{0%{transform:scale(.92)}55%{transform:scale(1.07)}100%{transform:scale(1)}}
+    .qm-rolepop-a{animation:qm-rp .34s var(--ease-out)}
+    .qm-rolepop-b{animation:qm-rp2 .34s var(--ease-out)}
+    @keyframes qm-gpulse{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.5;transform:scale(2.4)}}
+    .qm-state{transition:fill .8s ease}
   </style>
 </helmet>
-<div data-vertical="qualifier" data-theme="{{ theme }}" style="position:relative;display:flex;height:100vh;overflow:hidden;background:var(--surface-page);color:var(--text-body);font-family:var(--font-sans);font-size:14px">
+<div data-vertical="qualifier" data-theme="{{ theme }}" data-motion="{{ motionAttr }}" style="position:relative;display:flex;height:100vh;overflow:hidden;background:var(--surface-page);color:var(--text-body);font-family:var(--font-sans);font-size:14px">
+  <sc-if value="{{ authGate }}" hint-placeholder-val="{{ true }}">
+    <div style="position:absolute;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--surface-page)">
+      <div style="width:100%;max-width:420px;border:1px solid var(--border-subtle);border-radius:16px;background:var(--surface-card);box-shadow:var(--shadow-card);padding:28px 26px">
+        <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.14em;color:var(--text-subtle)">CCA INTERNAL · QUALIFIERMANAGEOS</div>
+        <h1 style="font-family:var(--font-display);font-size:22px;font-weight:700;color:var(--text-strong);margin:8px 0 6px">Staff sign-in</h1>
+        <sc-if value="{{ authLoading }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;margin-top:10px">Checking your session…</div>
+        </sc-if>
+        <sc-if value="{{ authDenied }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:12px;padding:12px 14px;border-radius:10px;background:rgba(226,59,46,0.08);border:1px solid rgba(226,59,46,0.25);color:var(--danger-600);font-size:13px;line-height:1.5">{{ authMessage }}</div>
+          <div onClick="{{ doSignOut }}" style="margin-top:16px;display:inline-flex;align-items:center;justify-content:center;height:38px;padding:0 16px;border-radius:10px;background:var(--surface-sunken);border:1px solid var(--border-default);cursor:pointer;font-weight:600;font-size:13px" class="qm-btn">Sign out</div>
+        </sc-if>
+        <sc-if value="{{ authLogin }}" hint-placeholder-val="{{ false }}">
+          <div style="font-size:13px;color:var(--text-muted);line-height:1.5;margin:4px 0 16px">Use your provisioned staff email and password. Public signup is off — ask an Admin if you need an account.</div>
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--text-subtle);margin-bottom:6px">Email</label>
+          <input value="{{ loginEmail }}" onChange="{{ setLoginEmail }}" type="email" autocomplete="username" placeholder="you@cagteam.net" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-default);background:var(--surface-sunken);margin-bottom:12px">
+          <label style="display:block;font-size:11px;font-weight:600;color:var(--text-subtle);margin-bottom:6px">Password</label>
+          <input value="{{ loginPassword }}" onChange="{{ setLoginPassword }}" type="password" autocomplete="current-password" placeholder="••••••••" style="width:100%;height:40px;padding:0 12px;border-radius:10px;border:1px solid var(--border-default);background:var(--surface-sunken);margin-bottom:14px">
+          <sc-if value="{{ hasAuthError }}" hint-placeholder-val="{{ false }}">
+            <div style="margin-bottom:12px;padding:10px 12px;border-radius:10px;background:rgba(226,59,46,0.08);border:1px solid rgba(226,59,46,0.25);color:var(--danger-600);font-size:12.5px;line-height:1.45">{{ authMessage }}</div>
+          </sc-if>
+          <div onClick="{{ doLogin }}" style="display:flex;align-items:center;justify-content:center;height:40px;border-radius:10px;background:linear-gradient(145deg,#1aa6a6,#0b8e8e);color:#fff;font-weight:700;font-size:13.5px;cursor:pointer" class="qm-btn">{{ loginBtn }}</div>
+        </sc-if>
+      </div>
+    </div>
+  </sc-if>
   <sc-if value="{{ dark }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:radial-gradient(1200px 820px at 15% -10%, #0c1d31, #08101c 60%)">
-      <div style="position:absolute;width:360px;height:360px;left:-80px;top:-90px;border-radius:50%;background:radial-gradient(circle, rgba(11,142,142,.22), transparent 66%);filter:blur(10px)"></div>
-      <div style="position:absolute;width:320px;height:320px;right:-60px;top:12%;border-radius:50%;background:radial-gradient(circle, rgba(124,77,208,.16), transparent 66%);filter:blur(10px)"></div>
+      <div style="position:absolute;width:360px;height:360px;left:-80px;top:-90px;border-radius:50%;background:radial-gradient(circle, rgba(11,142,142,.22), transparent 66%);filter:blur(10px)" class="qm-drift1"></div>
+      <div style="position:absolute;width:320px;height:320px;right:-60px;top:12%;border-radius:50%;background:radial-gradient(circle, rgba(124,77,208,.16), transparent 66%);filter:blur(10px)" class="qm-drift2"></div>
     </div>
   </sc-if>
   <sc-if value="{{ light }}" hint-placeholder-val="{{ true }}">
     <div style="position:absolute;inset:0;z-index:0;overflow:hidden;pointer-events:none;background:radial-gradient(1200px 820px at 15% -10%, #f2fbfb, #eef3f9 60%)">
-      <div style="position:absolute;width:400px;height:400px;left:-90px;top:-100px;border-radius:50%;background:radial-gradient(circle, rgba(11,142,142,.13), transparent 67%);filter:blur(12px)"></div>
-      <div style="position:absolute;width:320px;height:320px;right:-70px;top:14%;border-radius:50%;background:radial-gradient(circle, rgba(124,77,208,.09), transparent 67%);filter:blur(12px)"></div>
+      <div style="position:absolute;width:400px;height:400px;left:-90px;top:-100px;border-radius:50%;background:radial-gradient(circle, rgba(11,142,142,.13), transparent 67%);filter:blur(12px)" class="qm-drift1"></div>
+      <div style="position:absolute;width:320px;height:320px;right:-70px;top:14%;border-radius:50%;background:radial-gradient(circle, rgba(124,77,208,.09), transparent 67%);filter:blur(12px)" class="qm-drift2"></div>
     </div>
   </sc-if>
   <aside style="position:relative;z-index:1;width:248px;flex:none;background:var(--surface-card);display:flex;flex-direction:column;border-right:1px solid var(--border-subtle)">
@@ -110,6 +164,17 @@
           <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;color:var(--success-600);font-weight:600;flex:none">LIVE SYNC</span>
           <span style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.1em;color:var(--text-subtle);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis">· {{ todayCaps }} 09:42 AM ET</span>
         </div>
+        <div style="display:flex;align-items:center;gap:6px;flex:none">
+          <div onClick="{{ startTour }}" title="Guided walkthrough (auto-play available)" style="width:32px;height:32px;border-radius:9px;display:grid;place-items:center;cursor:pointer;transition:var(--transition);{{ tourBtnBs }}" style-hover="border-color:var(--accent);color:var(--accent)" style-active="transform:scale(0.92)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="m16.24 7.76-2.12 6.36-6.36 2.12 2.12-6.36z"></path></svg>
+          </div>
+          <div onClick="{{ toggleAnnot }}" title="Show motion &amp; interaction cues" style="width:32px;height:32px;border-radius:9px;display:grid;place-items:center;cursor:pointer;transition:var(--transition);{{ annotBtnBs }}" style-hover="border-color:var(--accent);color:var(--accent)" style-active="transform:scale(0.92)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="2"></rect><path d="M8 21h8M12 18v3M7 9h10M7 13h6"></path></svg>
+          </div>
+          <div onClick="{{ toggleMotion }}" title="Motion on / off (respects reduced-motion)" style="width:32px;height:32px;border-radius:9px;display:grid;place-items:center;cursor:pointer;transition:var(--transition);{{ motionBtnBs }}" style-hover="border-color:var(--accent);color:var(--accent)" style-active="transform:scale(0.92)">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ motionIcon }}"></path></svg>
+          </div>
+        </div>
         <div onClick="{{ bellGo }}" style="position:relative;width:32px;height:32px;flex:none;border-radius:8px;border:1px solid var(--border-default);display:grid;place-items:center;cursor:pointer;color:var(--text-muted)" style-hover="background:var(--surface-hover)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path></svg>
           <sc-if value="{{ hasBell }}" hint-placeholder-val="{{ false }}">
@@ -119,7 +184,7 @@
         <div onClick="{{ toggleTheme }}" title="Toggle theme" style="width:34px;height:34px;flex:none;border-radius:10px;border:1px solid var(--border-default);display:grid;place-items:center;cursor:pointer;color:var(--text-muted);background:var(--surface-card)" style-hover="background:var(--surface-hover);color:var(--accent)">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="{{ themeIcon }}"></path></svg>
         </div>
-        <div onClick="{{ cycleRole }}" title="Switch view role" style="display:flex;align-items:center;gap:7px;height:34px;flex:none;padding:0 12px;border:1px solid var(--border-default);border-radius:99px;cursor:pointer;background:var(--surface-card)" style-hover="border-color:var(--accent);background:var(--surface-hover)">
+        <div onClick="{{ doSignOut }}" class="{{ rolePillCls }}" title="Sign out (role comes from staff allowlist JWT)" style="display:flex;align-items:center;gap:7px;height:34px;flex:none;padding:0 12px;border:1px solid var(--border-default);border-radius:99px;cursor:pointer;background:var(--surface-card)" style-hover="border-color:var(--accent);background:var(--surface-hover)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"></path><circle cx="12" cy="12" r="3"></circle></svg>
           <span style="font-size:11.5px;font-weight:600;color:var(--text-strong);white-space:nowrap">{{ roleShort }}</span>
         </div>
@@ -138,6 +203,12 @@
 
         <sc-if value="{{ vDash }}" hint-placeholder-val="{{ true }}">
           <div data-screen-label="Dashboard" style="animation:qm-fade 240ms var(--ease-out)">
+            <sc-if value="{{ annotOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:flex-start;gap:10px;background:var(--navy-800);color:#ffffff;border-radius:12px;padding:11px 14px;margin-bottom:12px;animation:qm-pop .34s var(--ease-out)">
+                <span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.12em;color:#8fe3e3;background:rgba(143,227,227,.14);padding:3px 8px;border-radius:99px;white-space:nowrap;margin-top:1px">MOTION CUES</span>
+                <div style="font-size:11.5px;line-height:1.5;color:#d4e0e6">{{ annotText }}</div>
+              </div>
+            </sc-if>
             <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px">
               <div>
                 <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;color:var(--text-muted)">OPERATIONS OVERVIEW · {{ todayCaps }}</div>
@@ -163,6 +234,16 @@
                     <span style="display:inline-flex;align-items:center;gap:2px;font-family:var(--font-mono);font-size:10px;font-weight:600;padding:2px 7px;border-radius:99px;{{ k.deltaBs }}">↑ {{ k.delta }}</span>
                   </div>
                   <div style="font-size:10.5px;color:var(--text-subtle);margin-top:7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ k.sub }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div class="qm-stagger" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;margin-top:12px">
+              <sc-for list="{{ milestones }}" as="m" hint-placeholder-count="3">
+                <div style="display:flex;align-items:center;gap:12px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:14px;box-shadow:var(--shadow-card);padding:12px 15px;transition:var(--transition)" style-hover="box-shadow:var(--shadow-card-hover);transform:translateY(-2px)">
+                  <div style="width:38px;height:38px;border-radius:11px;display:grid;place-items:center;flex:none;background:var(--surface-sunken);color:{{ m.color }};animation:qm-float 4.5s ease-in-out infinite">
+                    <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="{{ m.d }}"></path></svg>
+                  </div>
+                  <div style="min-width:0"><div style="font-size:13.5px;font-weight:700;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.label }}</div><div style="font-size:10.5px;color:var(--text-subtle)">{{ m.sub }}</div></div>
                 </div>
               </sc-for>
             </div>
@@ -350,6 +431,12 @@
         </sc-if>
         <sc-if value="{{ vQual }}" hint-placeholder-val="{{ false }}">
           <div data-screen-label="Qualifiers" style="animation:qm-fade 240ms var(--ease-out)">
+            <sc-if value="{{ annotOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:flex-start;gap:10px;background:var(--navy-800);color:#ffffff;border-radius:12px;padding:11px 14px;margin-bottom:12px;animation:qm-pop .34s var(--ease-out)">
+                <span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.12em;color:#8fe3e3;background:rgba(143,227,227,.14);padding:3px 8px;border-radius:99px;white-space:nowrap;margin-top:1px">MOTION CUES</span>
+                <div style="font-size:11.5px;line-height:1.5;color:#d4e0e6">{{ annotText }}</div>
+              </div>
+            </sc-if>
             <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px">
               <div>
                 <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;color:var(--text-muted)">ROSTER</div>
@@ -410,6 +497,11 @@
                       <div style="min-width:0">
                         <div style="font-size:12.5px;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ q.name }} <span style="font-family:var(--font-mono);font-size:9.5px;font-weight:400;color:var(--text-subtle)">{{ q.id }}</span></div>
                         <div style="font-size:10.5px;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ q.email }}</div>
+                        <div style="display:flex;gap:5px;margin-top:3px;align-items:center">
+                          <sc-if value="{{ q.verified }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:3px;font-size:8.5px;font-weight:700;letter-spacing:.04em;padding:1px 6px;border-radius:99px;background:rgba(31,157,85,.14);color:var(--success-600)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>VERIFIED</span></sc-if>
+                          <sc-if value="{{ q.hasTier }}" hint-placeholder-val="{{ false }}"><span style="font-size:8.5px;font-weight:700;letter-spacing:.04em;padding:1px 7px;border-radius:99px;{{ q.tierBs }}">{{ q.tierT }}</span></sc-if>
+                          <sc-if value="{{ q.hasStreak }}" hint-placeholder-val="{{ false }}"><span style="display:inline-flex;align-items:center;gap:2px;font-size:8.5px;font-weight:700;padding:1px 6px;border-radius:99px;background:rgba(232,163,61,.16);color:var(--warning-600)"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:qm-flame 1.6s ease-in-out infinite"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"></path></svg>{{ q.streakN }}×</span></sc-if>
+                        </div>
                       </div>
                     </div>
                     <span style="font-size:11.5px;color:var(--text-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ q.loc }}</span>
@@ -426,6 +518,16 @@
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
                   </div>
                 </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border-default)">
+                <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--text-subtle)">{{ qPg.range }}</span>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+                  <span onClick="{{ qPg.first }}" style="{{ qPg.prevBs }}">FIRST</span>
+                  <span onClick="{{ qPg.prev }}" style="{{ qPg.prevBs }}">‹ PREV</span>
+                  <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--text-body);padding:0 6px">{{ qPg.pageTxt }}</span>
+                  <span onClick="{{ qPg.next }}" style="{{ qPg.nextBs }}">NEXT ›</span>
+                  <span onClick="{{ qPg.last }}" style="{{ qPg.nextBs }}">LAST</span>
+                </div>
               </div>
             </div>
             <div style="margin-top:10px;font-size:10.5px;color:var(--text-subtle);display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#7c4dd0"></span>Readiness scores are decision support only — human review required before any external use.</div>
@@ -750,14 +852,19 @@
               </sc-for>
             </div>
             <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:12px 16px;display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
+              <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle);flex:1;min-width:200px">SEARCH
+                <input value="{{ fLQ }}" onChange="{{ setFLQ }}" placeholder="License #, qualifier, type…" style="height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-body);font-size:12px;outline:none;width:100%">
+              </label>
               <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle)">STATE
                 <select value="{{ fLState }}" onChange="{{ setFLState }}" style="height:32px;padding:0 8px;border-radius:8px;border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-body);font-size:12px;outline:none;cursor:pointer">
-                  <option value="all">All</option><option>FL</option><option>GA</option><option>TX</option><option>LA</option><option>OK</option><option>NC</option><option>CA</option><option>AZ</option><option>NY</option>
+                  <option value="all">All</option>
+                  <sc-for list="{{ lStates }}" as="s" hint-placeholder-count="8"><option>{{ s.t }}</option></sc-for>
                 </select>
               </label>
               <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle)">TRADE / CLASSIFICATION
                 <select value="{{ fLTrade }}" onChange="{{ setFLTrade }}" style="height:32px;padding:0 8px;border-radius:8px;border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-body);font-size:12px;outline:none;cursor:pointer">
-                  <option value="all">All</option><option>General Contracting</option><option>Electrical</option><option>Plumbing</option><option>HVAC</option><option>Roofing</option>
+                  <option value="all">All</option>
+                  <sc-for list="{{ lTrades }}" as="t" hint-placeholder-count="6"><option>{{ t.t }}</option></sc-for>
                 </select>
               </label>
               <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle)">HEALTH
@@ -770,16 +877,26 @@
                   <option value="all">Any</option><option value="expired">Already expired</option><option value="30">Within 30 days</option><option value="60">Within 60 days</option><option value="90">Within 90 days</option>
                 </select>
               </label>
+              <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle)">SORT
+                <select value="{{ fLSort }}" onChange="{{ setFLSort }}" style="height:32px;padding:0 8px;border-radius:8px;border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-body);font-size:12px;outline:none;cursor:pointer">
+                  <option value="risk">Risk first</option><option value="expiring">Expiring soonest</option><option value="verified">Recently verified</option><option value="state">State</option><option value="number">License #</option>
+                </select>
+              </label>
+              <label style="display:flex;flex-direction:column;gap:4px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle)">ROWS
+                <select value="{{ lPer }}" onChange="{{ setLPer }}" style="height:32px;padding:0 8px;border-radius:8px;border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-body);font-size:12px;outline:none;cursor:pointer">
+                  <option value="25">25</option><option value="50">50</option><option value="100">100</option><option value="250">250</option>
+                </select>
+              </label>
             </div>
             <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);margin-top:12px;overflow-x:auto">
               <div style="min-width:1100px">
-                <div style="display:grid;grid-template-columns:130px minmax(150px,1.1fr) 48px minmax(190px,1.4fr) 105px 150px 130px minmax(150px,1fr) 85px;gap:10px;padding:10px 16px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-subtle);border-bottom:1px solid var(--border-default)">
-                  <span>License #</span><span>Qualifier</span><span>St</span><span>Type · Trade</span><span>Status</span><span>Health</span><span>Expires</span><span>Last verified</span><span>Placement</span>
+                <div style="display:grid;grid-template-columns:130px minmax(150px,1.1fr) 48px minmax(190px,1.4fr) 105px 150px 130px minmax(150px,1fr) 85px 22px;gap:10px;padding:10px 16px;font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-subtle);border-bottom:1px solid var(--border-default)">
+                  <span>License #</span><span>Qualifier</span><span>St</span><span>Type · Trade</span><span>Status</span><span>Health</span><span>Expires</span><span>Last verified</span><span>Placement</span><span></span>
                 </div>
                 <sc-for list="{{ lRows }}" as="l" hint-placeholder-count="8">
-                  <div style="display:grid;grid-template-columns:130px minmax(150px,1.1fr) 48px minmax(190px,1.4fr) 105px 150px 130px minmax(150px,1fr) 85px;gap:10px;padding:11px 16px;border-bottom:1px solid var(--divider);align-items:center;font-size:12px">
+                  <div onClick="{{ l.open }}" style="display:grid;grid-template-columns:130px minmax(150px,1.1fr) 48px minmax(190px,1.4fr) 105px 150px 130px minmax(150px,1fr) 85px 22px;gap:10px;padding:11px 16px;border-bottom:1px solid var(--divider);align-items:center;font-size:12px;cursor:pointer" style-hover="background:var(--surface-hover)">
                     <span style="font-family:var(--font-mono);font-size:11.5px;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.num }}</span>
-                    <span onClick="{{ l.qgo }}" style="font-size:12px;font-weight:500;color:var(--text-link);cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.qname }}</span>
+                    <span style="font-size:12px;font-weight:500;color:var(--text-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.qname }}</span>
                     <span style="font-family:var(--font-mono);font-size:10px;font-weight:600;padding:2px 0;border-radius:6px;background:var(--surface-inverse);color:var(--text-on-brand);text-align:center">{{ l.state }}</span>
                     <span style="min-width:0"><span style="display:block;color:var(--text-body);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.type }}</span><span style="display:block;font-size:10.5px;color:var(--text-subtle)">{{ l.trade }}</span></span>
                     <span><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;{{ l.statusBs }}">{{ l.statusT }}</span></span>
@@ -787,11 +904,195 @@
                     <span style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="color:var(--text-body);font-size:11.5px">{{ l.expTxt }}</span><sc-if value="{{ l.hasExpChip }}" hint-placeholder-val="{{ false }}"><span style="font-family:var(--font-mono);font-size:9px;font-weight:600;padding:1px 6px;border-radius:99px;{{ l.expChipBs }}">{{ l.expChipT }}</span></sc-if></span>
                     <span style="min-width:0"><span style="display:block;font-size:11.5px;color:var(--text-body)">{{ l.verTxt }}</span><span style="display:block;font-size:10px;color:var(--text-subtle);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ l.source }}</span></span>
                     <span><span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap;{{ l.usableBs }}">{{ l.usableT }}</span></span>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--gray-400)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border-default)">
+                <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--text-subtle)">{{ lPg.range }}</span>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+                  <span onClick="{{ lPg.first }}" style="{{ lPg.prevBs }}">FIRST</span>
+                  <span onClick="{{ lPg.prev }}" style="{{ lPg.prevBs }}">‹ PREV</span>
+                  <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--text-body);padding:0 6px">{{ lPg.pageTxt }}</span>
+                  <span onClick="{{ lPg.next }}" style="{{ lPg.nextBs }}">NEXT ›</span>
+                  <span onClick="{{ lPg.last }}" style="{{ lPg.nextBs }}">LAST</span>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:10px;font-size:10.5px;color:var(--text-subtle);display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#7c4dd0"></span>License health is verified against state sources on a rolling cycle. Statuses are decision support — human review required before external use; no licensing outcome is guaranteed.</div>
+          </div>
+        </sc-if>
+
+        <sc-if value="{{ vLdet }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="License record" style="animation:qm-fade 240ms var(--ease-out)">
+            <div onClick="{{ backL }}" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-link);cursor:pointer;margin-bottom:12px">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+              Back to Licenses
+            </div>
+            <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:18px 20px;display:flex;gap:20px;align-items:center;flex-wrap:wrap">
+              <div style="flex:1;min-width:260px">
+                <div style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.14em;color:var(--text-muted)">{{ dl.id }} · {{ dl.headline }}</div>
+                <h1 style="font-family:var(--font-mono);font-size:26px;font-weight:700;letter-spacing:-0.01em;color:var(--text-strong);margin:6px 0 0">{{ dl.num }}</h1>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+                  <span style="font-family:var(--font-mono);font-size:10.5px;font-weight:600;padding:3px 10px;border-radius:99px;background:var(--surface-inverse);color:var(--text-on-brand)">{{ dl.state }}</span>
+                  <span style="font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:99px;{{ dl.statusBs }}">{{ dl.statusT }}</span>
+                  <span style="font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:99px;{{ dl.healthBs }}">{{ dl.healthT }}</span>
+                  <span style="font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:99px;{{ dl.usableBs }}">{{ dl.usableT }}</span>
+                </div>
+                <div style="font-size:11.5px;color:var(--text-muted);margin-top:9px">{{ dl.trade }} · held by {{ dl.qname }} ({{ dl.qid }}) · owner {{ dl.qowner }}</div>
+              </div>
+              <div style="flex:none;min-width:230px">
+                <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;color:var(--text-subtle)">EXPIRATION</div>
+                <div style="font-family:var(--font-display);font-size:19px;font-weight:700;color:var(--text-strong);margin-top:4px">{{ dl.expiresFull }}</div>
+                <div style="font-size:11.5px;margin-top:3px;{{ dl.expTone }}">{{ dl.expDays }}</div>
+                <div style="height:5px;border-radius:99px;background:var(--surface-active);overflow:hidden;margin-top:9px"><div style="height:100%;border-radius:99px;{{ dl.termBarBs }}"></div></div>
+                <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;color:var(--text-subtle);margin-top:5px">{{ dl.termTxt }}</div>
+              </div>
+              <div style="display:flex;flex-direction:column;gap:7px;flex:none">
+                <button onClick="{{ dl.actVerify }}" style="height:32px;padding:0 14px;border-radius:8px;border:none;background:var(--teal-600);color:#ffffff;font-size:12px;font-weight:600;cursor:pointer" style-hover="background:var(--teal-700)">Re-verify now</button>
+                <button onClick="{{ dl.actPortal }}" style="height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer" style-hover="color:var(--text-strong)">Open state source</button>
+                <button onClick="{{ dl.actFlag }}" style="height:32px;padding:0 14px;border-radius:8px;border:1px solid var(--border-default);background:transparent;color:var(--text-muted);font-size:12px;font-weight:600;cursor:pointer" style-hover="color:var(--text-strong)">Flag for review</button>
+              </div>
+            </div>
+
+            <sc-if value="{{ dl.blocked }}" hint-placeholder-val="{{ false }}">
+              <div style="margin-top:10px;padding:10px 14px;border-radius:10px;background:var(--status-bad-bg);border:1px solid var(--danger-500);display:flex;align-items:center;gap:9px">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--danger-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"></path></svg>
+                <span style="font-size:12px;font-weight:600;color:var(--status-bad-text)">Not usable for placement — {{ dl.blockReason }}</span>
+              </div>
+            </sc-if>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:12px;margin-top:12px">
+              <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:10px">LICENSE RECORD</div>
+                <div style="display:grid;grid-template-columns:112px 1fr;gap:7px 10px;font-size:12px">
+                  <span style="color:var(--text-muted)">License #</span><span style="font-family:var(--font-mono);font-weight:600;color:var(--text-strong)">{{ dl.num }}</span>
+                  <span style="color:var(--text-muted)">State</span><span style="color:var(--text-body)">{{ dl.state }}</span>
+                  <span style="color:var(--text-muted)">Type</span><span style="color:var(--text-body)">{{ dl.type }}</span>
+                  <span style="color:var(--text-muted)">Classification</span><span style="color:var(--text-body)">{{ dl.trade }}</span>
+                  <span style="color:var(--text-muted)">Board status</span><span style="color:var(--text-body)">{{ dl.statusT }}</span>
+                  <span style="color:var(--text-muted)">Issued</span><span style="color:var(--text-body)">{{ dl.issued }}</span>
+                  <span style="color:var(--text-muted)">Expires</span><span style="color:var(--text-body);font-weight:600">{{ dl.expiresFull }}</span>
+                </div>
+                <sc-if value="{{ dl.hasRestrict }}" hint-placeholder-val="{{ false }}">
+                  <div style="margin-top:12px;padding:9px 11px;border-radius:9px;background:var(--surface-sunken);border:1px solid var(--border-subtle)">
+                    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle);margin-bottom:4px">RESTRICTIONS</div>
+                    <div style="font-size:11.5px;color:var(--text-body);line-height:1.5">{{ dl.restrict }}</div>
+                  </div>
+                </sc-if>
+              </div>
+
+              <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:10px">VERIFICATION FRESHNESS</div>
+                <div style="display:grid;grid-template-columns:112px 1fr;gap:7px 10px;font-size:12px">
+                  <span style="color:var(--text-muted)">Last verified</span><span style="color:var(--text-body);font-weight:600">{{ dl.verTxt }}</span>
+                  <span style="color:var(--text-muted)">Source</span><span style="color:var(--text-body)">{{ dl.source }}</span>
+                  <span style="color:var(--text-muted)">Elapsed</span><span style="color:var(--text-body)">{{ dl.sinceTxt }}</span>
+                  <span style="color:var(--text-muted)">Next check</span><span style="color:var(--text-body)">{{ dl.nextVerify }}</span>
+                </div>
+                <div style="height:6px;border-radius:99px;background:var(--surface-active);overflow:hidden;margin-top:12px"><div style="height:100%;border-radius:99px;{{ dl.freshBarBs }}"></div></div>
+                <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle);margin-top:6px">{{ dl.freshTxt }}</div>
+                <div style="font-size:10.5px;color:var(--text-subtle);margin-top:10px;line-height:1.5">Licenses are re-verified against the state source every 180 days. Rose OS proposes the status; a human confirms before it changes.</div>
+              </div>
+
+              <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:10px">QUALIFIER OF RECORD</div>
+                <div style="display:flex;align-items:center;gap:11px">
+                  <div style="width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;flex:none;{{ dl.qavBs }}">{{ dl.qinitials }}</div>
+                  <div style="min-width:0;flex:1">
+                    <div style="font-size:13px;font-weight:600;color:var(--text-strong)">{{ dl.qname }}</div>
+                    <div style="font-family:var(--font-mono);font-size:10px;color:var(--text-subtle)">{{ dl.qid }} · {{ dl.qloc }}</div>
+                  </div>
+                </div>
+                <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px">
+                  <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;{{ dl.qstatusBs }}">{{ dl.qstatusT }}</span>
+                  <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;{{ dl.qverifBs }}">{{ dl.qverifT }}</span>
+                  <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;{{ dl.qavailBs }}">{{ dl.qavailT }}</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:9px;margin-top:12px">
+                  <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.1em;color:var(--text-subtle)">READINESS</span>
+                  <div style="flex:1;height:5px;border-radius:99px;background:var(--surface-active);overflow:hidden"><div style="height:100%;border-radius:99px;{{ dl.qreadyBarBs }}"></div></div>
+                  <span style="font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text-strong)">{{ dl.qready }}</span>
+                </div>
+                <div onClick="{{ dl.goQual }}" style="margin-top:12px;font-size:11.5px;font-weight:600;color:var(--text-link);cursor:pointer">Open full profile →</div>
+              </div>
+
+              <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:10px">ENGAGEMENTS BACKED BY THIS LICENSE</div>
+                <sc-if value="{{ dl.hasPls }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <sc-for list="{{ dl.pls }}" as="p" hint-placeholder-count="2">
+                      <div style="padding:10px 12px;border-radius:10px;background:var(--surface-sunken);border:1px solid var(--border-subtle)">
+                        <div style="display:flex;align-items:center;gap:8px">
+                          <span style="font-size:12px;font-weight:600;color:var(--text-strong);flex:1">{{ p.company }}</span>
+                          <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;{{ p.statusBs }}">{{ p.statusT }}</span>
+                        </div>
+                        <div style="font-size:10.5px;color:var(--text-muted);margin-top:4px">{{ p.meta }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ dl.noPls }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5">No active placement currently relies on this license. Placement usability is decided per engagement — a usable license is necessary but not sufficient.</div>
+                </sc-if>
+              </div>
+
+              <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:10px">DOCUMENTS ON THIS LICENSE</div>
+                <sc-if value="{{ dl.hasDocs }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <sc-for list="{{ dl.docs }}" as="d" hint-placeholder-count="1">
+                      <div style="padding:10px 12px;border-radius:10px;background:var(--surface-sunken);border:1px solid var(--border-subtle)">
+                        <div style="display:flex;align-items:center;gap:8px">
+                          <span style="font-size:12px;font-weight:600;color:var(--text-strong);flex:1">{{ d.type }}</span>
+                          <span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px;{{ d.statusBs }}">{{ d.statusT }}</span>
+                        </div>
+                        <div style="font-size:10.5px;color:var(--text-muted);margin-top:4px;line-height:1.45">{{ d.notes }}</div>
+                        <div style="font-family:var(--font-mono);font-size:9.5px;color:var(--text-subtle);margin-top:4px">{{ d.id }} · {{ d.link }}</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ dl.noDocs }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5">No document is filed against this license record. Copies are only requested when a license needs proof or re-verification.</div>
+                </sc-if>
+              </div>
+
+              <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px">
+                <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:10px">OTHER LICENSES HELD BY {{ dl.qname }}</div>
+                <sc-if value="{{ dl.hasOther }}" hint-placeholder-val="{{ false }}">
+                  <div style="display:flex;flex-direction:column;gap:6px">
+                    <sc-for list="{{ dl.otherLics }}" as="o" hint-placeholder-count="3">
+                      <div onClick="{{ o.go }}" style="display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:9px;cursor:pointer;border:1px solid var(--border-subtle)" style-hover="background:var(--surface-hover)">
+                        <span style="font-family:var(--font-mono);font-size:10px;font-weight:600;color:var(--text-muted);width:26px;flex:none">{{ o.state }}</span>
+                        <div style="flex:1;min-width:0">
+                          <div style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ o.num }}</div>
+                          <div style="font-size:10px;color:var(--text-subtle)">{{ o.trade }}</div>
+                        </div>
+                        <span style="font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:99px;white-space:nowrap;{{ o.healthBs }}">{{ o.healthT }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ dl.noOther }}" hint-placeholder-val="{{ false }}">
+                  <div style="font-size:11.5px;color:var(--text-muted);line-height:1.5">This is the only license on file for this qualifier — single-state coverage.</div>
+                </sc-if>
+              </div>
+            </div>
+
+            <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px;margin-top:12px">
+              <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:14px">RECORD TIMELINE</div>
+              <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px">
+                <sc-for list="{{ dl.steps }}" as="s" hint-placeholder-count="4">
+                  <div style="padding-top:12px;border-top:2px solid var(--border-default);position:relative">
+                    <span style="position:absolute;top:-5px;left:0;width:8px;height:8px;border-radius:50%;{{ s.dotBs }}"></span>
+                    <div style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.1em;color:var(--text-subtle)">{{ s.kCaps }}</div>
+                    <div style="font-size:12.5px;font-weight:600;color:var(--text-strong);margin-top:4px">{{ s.v }}</div>
                   </div>
                 </sc-for>
               </div>
             </div>
-            <div style="margin-top:10px;font-size:10.5px;color:var(--text-subtle);display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#7c4dd0"></span>License health is verified against state sources on a rolling cycle. Statuses are decision support — human review required before external use; no licensing outcome is guaranteed.</div>
+            <div style="margin-top:10px;font-size:10.5px;color:var(--text-subtle);display:flex;align-items:center;gap:6px"><span style="width:6px;height:6px;border-radius:50%;background:#7c4dd0"></span>This record is decision support only. Human review is required before any external use, and no licensing outcome is guaranteed.</div>
           </div>
         </sc-if>
 
@@ -1007,6 +1308,12 @@
 
         <sc-if value="{{ vMatch }}" hint-placeholder-val="{{ false }}">
           <div data-screen-label="Match Center" style="animation:qm-fade 240ms var(--ease-out)">
+            <sc-if value="{{ annotOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:flex-start;gap:10px;background:var(--navy-800);color:#ffffff;border-radius:12px;padding:11px 14px;margin-bottom:12px;animation:qm-pop .34s var(--ease-out)">
+                <span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.12em;color:#8fe3e3;background:rgba(143,227,227,.14);padding:3px 8px;border-radius:99px;white-space:nowrap;margin-top:1px">MOTION CUES</span>
+                <div style="font-size:11.5px;line-height:1.5;color:#d4e0e6">{{ annotText }}</div>
+              </div>
+            </sc-if>
             <div style="margin-bottom:14px">
               <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;color:var(--text-muted)">SUPPLY ✕ DEMAND</div>
               <h1 style="font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text-strong);margin:6px 0 0">Match Center</h1>
@@ -1066,9 +1373,9 @@
                 <sc-if value="{{ hasRec }}" hint-placeholder-val="{{ false }}">
                   <div style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-top:2px">CANDIDATES — ELIGIBLE &amp; POSSIBLE</div>
                   <sc-for list="{{ recM }}" as="m" hint-placeholder-count="2">
-                    <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);overflow:hidden">
+                    <div class="qm-cardrise" style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);overflow:hidden;animation-delay:{{ m.delay }}s">
                       <div style="display:flex;gap:12px;padding:14px 16px;align-items:center;flex-wrap:wrap">
-                        <div style="width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none;{{ m.ringBs }}"><div style="width:35px;height:35px;border-radius:50%;background:var(--surface-card);display:grid;place-items:center;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text-strong)">{{ m.fit }}</div></div>
+                        <div class="qm-pop" style="width:46px;height:46px;border-radius:50%;display:grid;place-items:center;flex:none;{{ m.ringBs }}"><div style="width:35px;height:35px;border-radius:50%;background:var(--surface-card);display:grid;place-items:center;font-family:var(--font-mono);font-size:12px;font-weight:600;color:var(--text-strong)">{{ m.fit }}</div></div>
                         <div style="flex:1;min-width:200px">
                           <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
                             <span onClick="{{ m.qgo }}" style="font-size:14px;font-weight:600;color:var(--text-strong);cursor:pointer" style-hover="color:var(--accent-hover)">{{ m.qname }}</span>
@@ -1097,9 +1404,9 @@
                         <span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:0.1em;color:#7c4dd0;font-weight:600">HUMAN REVIEW REQUIRED BEFORE EXTERNAL USE</span>
                         <sc-if value="{{ m.canAct }}" hint-placeholder-val="{{ false }}">
                           <div style="display:flex;gap:8px">
-                            <button onClick="{{ m.reject }}" style="height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--danger-100);background:transparent;color:var(--danger-500);font-size:12px;font-weight:600;cursor:pointer" style-hover="background:var(--status-bad-bg)">Reject</button>
-                            <button onClick="{{ m.hold }}" style="height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--border-default);background:transparent;color:var(--text-body);font-size:12px;font-weight:600;cursor:pointer" style-hover="background:var(--surface-hover)">Hold</button>
-                            <button onClick="{{ m.approve }}" style="height:30px;padding:0 15px;border-radius:8px;border:1px solid transparent;background:var(--accent);color:#ffffff;font-size:12px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-hover)">Approve match</button>
+                            <button onClick="{{ m.reject }}" class="qm-btn" style="height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--danger-100);background:transparent;color:var(--danger-500);font-size:12px;font-weight:600;cursor:pointer" style-hover="background:var(--status-bad-bg)">Reject</button>
+                            <button onClick="{{ m.hold }}" class="qm-btn" style="height:30px;padding:0 13px;border-radius:8px;border:1px solid var(--border-default);background:transparent;color:var(--text-body);font-size:12px;font-weight:600;cursor:pointer" style-hover="background:var(--surface-hover)">Hold</button>
+                            <button onClick="{{ m.approve }}" class="qm-btn" style="height:30px;padding:0 15px;border-radius:8px;border:1px solid transparent;background:var(--accent);color:#ffffff;font-size:12px;font-weight:600;cursor:pointer" style-hover="background:var(--accent-hover)">Approve match</button>
                           </div>
                         </sc-if>
                         <sc-if value="{{ m.showLock }}" hint-placeholder-val="{{ false }}">
@@ -1202,6 +1509,75 @@
           </div>
         </sc-if>
 
+        <sc-if value="{{ vCoverage }}" hint-placeholder-val="{{ false }}">
+          <div data-screen-label="Coverage Map" style="animation:qm-fade 240ms var(--ease-out)">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px">
+              <div>
+                <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;color:var(--text-muted)">GEOGRAPHIC COVERAGE</div>
+                <h1 style="font-family:var(--font-display);font-size:26px;font-weight:700;letter-spacing:-0.02em;color:var(--text-strong);margin:6px 0 0">Coverage Map</h1>
+                <p style="font-size:13px;color:var(--text-muted);margin:5px 0 0">Where the licensed bench runs deep, who's available now, and which regions have open demand but no local coverage.</p>
+              </div>
+              <div style="display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:99px;border:1px solid rgba(226,59,46,0.30);background:rgba(226,59,46,0.06)">
+                <span style="width:7px;height:7px;border-radius:50%;background:var(--danger-500);animation:qm-dot 1.8s ease-in-out infinite"></span>
+                <span style="font-family:var(--font-mono);font-size:9.5px;letter-spacing:0.11em;color:var(--danger-600);font-weight:600">{{ covGapCount }} COVERAGE GAPS · PULSING ON MAP</span>
+              </div>
+            </div>
+            <div class="qm-stagger" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:12px">
+              <sc-for list="{{ covKpis }}" as="k" hint-placeholder-count="4">
+                <div style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:14px;box-shadow:var(--shadow-card);padding:13px 15px;transition:var(--transition)" style-hover="box-shadow:var(--shadow-card-hover);transform:translateY(-2px)">
+                  <div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:0.12em;color:var(--text-subtle)">{{ k.label }}</div>
+                  <div style="font-family:var(--font-display);font-size:26px;font-weight:700;color:{{ k.color }};margin-top:6px;line-height:1">{{ k.value }}</div>
+                  <div style="font-size:10px;color:var(--text-subtle);margin-top:3px">{{ k.sub }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display:grid;grid-template-columns:minmax(0,1fr) 316px;gap:14px;align-items:start">
+              <section style="position:relative;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
+                <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--divider)">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--teal-600)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20l-5-2.5V5l5 2.5m0 13 6-3m-6 3V7.5m6 9.5 5 2.5V6.5L15 4m0 13V4"></path></svg>
+                  <h2 style="font-size:13.5px;font-weight:600;color:var(--text-strong);margin:0;flex:1">Live coverage density</h2>
+                  <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.08em;color:var(--text-subtle)">HOVER STATES &amp; PINS</span>
+                </div>
+                <div ref="{{ mapRef }}" style="position:relative;width:100%;aspect-ratio:960/600;min-height:300px"></div>
+                <sc-if value="{{ annotOn }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;top:58px;right:16px;max-width:212px;background:var(--navy-800);color:#ffffff;border-radius:10px;padding:9px 11px;font-size:10.5px;line-height:1.45;box-shadow:var(--shadow-lg);z-index:5;animation:qm-pop .34s var(--ease-out)">
+                    <div style="font-family:var(--font-mono);font-size:8px;letter-spacing:0.1em;color:#8fe3e3;margin-bottom:3px">MOTION CUE</div>
+                    State fill animates by density on load · green pins = available bench · amber/red dots pulse over coverage gaps.
+                  </div>
+                </sc-if>
+              </section>
+              <section style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:16px;box-shadow:var(--shadow-card);overflow:hidden">
+                <div style="display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid var(--divider)">
+                  <span style="width:8px;height:8px;border-radius:50%;background:var(--danger-500);flex:none;animation:qm-dot 1.8s ease-in-out infinite"></span>
+                  <h2 style="font-size:13px;font-weight:600;color:var(--text-strong);margin:0;flex:1">Coverage gaps</h2>
+                  <span onClick="{{ goRisk }}" style="font-size:11px;font-weight:600;color:var(--text-link);cursor:pointer">Risk →</span>
+                </div>
+                <sc-for list="{{ covGaps }}" as="g" hint-placeholder-count="5">
+                  <div style="display:flex;align-items:flex-start;gap:10px;padding:11px 16px;border-bottom:1px solid var(--divider)">
+                    <span style="width:9px;height:9px;border-radius:50%;flex:none;margin-top:3px;{{ g.dotBs }};animation:qm-dot 2s ease-in-out infinite"></span>
+                    <div style="flex:1;min-width:0">
+                      <div style="display:flex;align-items:center;gap:7px"><span style="font-size:12.5px;font-weight:600;color:var(--text-strong)">{{ g.city }}, {{ g.state }}</span><span style="font-size:9px;font-weight:700;letter-spacing:0.05em;padding:1px 6px;border-radius:6px;{{ g.levelBs }}">{{ g.levelT }}</span></div>
+                      <div style="font-size:11px;color:var(--text-muted);margin-top:2px;line-height:1.4">{{ g.reason }}</div>
+                    </div>
+                  </div>
+                </sc-for>
+                <div style="padding:13px 16px 14px">
+                  <div style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:0.12em;color:var(--text-subtle);margin-bottom:9px">DEEPEST BENCH BY STATE</div>
+                  <div style="display:flex;flex-direction:column;gap:8px">
+                    <sc-for list="{{ covTop }}" as="t" hint-placeholder-count="6">
+                      <div style="display:grid;grid-template-columns:26px 1fr 22px;gap:9px;align-items:center">
+                        <span style="font-family:var(--font-mono);font-size:11px;font-weight:600;color:var(--text-strong)">{{ t.st }}</span>
+                        <div style="height:7px;border-radius:99px;background:var(--surface-active);overflow:hidden"><div style="height:100%;border-radius:99px;{{ t.w }}"></div></div>
+                        <span style="font-family:var(--font-mono);font-size:10px;color:var(--text-muted);text-align:right">{{ t.n }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </sc-if>
+
         <sc-if value="{{ vDocs }}" hint-placeholder-val="{{ false }}">
           <div data-screen-label="Documents" style="animation:qm-fade 240ms var(--ease-out)">
             <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px">
@@ -1284,6 +1660,16 @@
                   </div>
                 </sc-for>
               </div>
+              <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 16px;border-top:1px solid var(--border-default)">
+                <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--text-subtle)">{{ dPg.range }}</span>
+                <div style="margin-left:auto;display:flex;align-items:center;gap:6px">
+                  <span onClick="{{ dPg.first }}" style="{{ dPg.prevBs }}">FIRST</span>
+                  <span onClick="{{ dPg.prev }}" style="{{ dPg.prevBs }}">‹ PREV</span>
+                  <span style="font-family:var(--font-mono);font-size:10px;letter-spacing:0.08em;color:var(--text-body);padding:0 6px">{{ dPg.pageTxt }}</span>
+                  <span onClick="{{ dPg.next }}" style="{{ dPg.nextBs }}">NEXT ›</span>
+                  <span onClick="{{ dPg.last }}" style="{{ dPg.nextBs }}">LAST</span>
+                </div>
+              </div>
             </div>
           </div>
         </sc-if>
@@ -1352,6 +1738,12 @@
         </sc-if>
         <sc-if value="{{ vReports }}" hint-placeholder-val="{{ false }}">
           <div data-screen-label="Reports" style="animation:qm-fade 240ms var(--ease-out)">
+            <sc-if value="{{ annotOn }}" hint-placeholder-val="{{ false }}">
+              <div style="display:flex;align-items:flex-start;gap:10px;background:var(--navy-800);color:#ffffff;border-radius:12px;padding:11px 14px;margin-bottom:12px;animation:qm-pop .34s var(--ease-out)">
+                <span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.12em;color:#8fe3e3;background:rgba(143,227,227,.14);padding:3px 8px;border-radius:99px;white-space:nowrap;margin-top:1px">MOTION CUES</span>
+                <div style="font-size:11.5px;line-height:1.5;color:#d4e0e6">{{ annotText }}</div>
+              </div>
+            </sc-if>
             <div style="display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:14px">
               <div>
                 <div style="font-family:var(--font-mono);font-size:10.5px;letter-spacing:0.14em;color:var(--text-muted)">OPERATIONAL HEALTH</div>
@@ -1386,6 +1778,25 @@
               </div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px;align-items:start">
+              <section style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px;grid-column:1/-1">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--warning-500)" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3"></path></svg>
+                  <h2 style="font-size:13px;font-weight:600;color:var(--text-strong);margin:0;flex:1">Staff activity leaderboard</h2>
+                  <span style="font-family:var(--font-mono);font-size:8.5px;letter-spacing:.1em;color:var(--text-subtle)">OWNERSHIP + REVIEWS + APPROVALS</span>
+                </div>
+                <div style="font-size:10.5px;color:var(--text-subtle);margin-bottom:12px">A gamified read on who's driving the roster — internal recognition, not a performance metric.</div>
+                <div style="display:flex;flex-direction:column;gap:9px">
+                  <sc-for list="{{ leaderboard }}" as="s" hint-placeholder-count="6">
+                    <div style="display:grid;grid-template-columns:24px 30px minmax(0,1fr) minmax(90px,150px) 42px;gap:11px;align-items:center">
+                      <span style="font-family:var(--font-mono);font-size:10.5px;font-weight:700;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;{{ s.medalBs }}">{{ s.rank }}</span>
+                      <div style="width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-size:10px;font-weight:700;{{ s.avBs }}">{{ s.initials }}</div>
+                      <div style="min-width:0"><div style="font-size:12.5px;font-weight:600;color:var(--text-strong);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ s.name }}</div><div style="font-size:10px;color:var(--text-muted)">{{ s.role }}</div></div>
+                      <div style="height:8px;border-radius:99px;background:var(--surface-active);overflow:hidden"><div class="qm-fitbar" style="height:100%;border-radius:99px;{{ s.w }}"></div></div>
+                      <span style="font-family:var(--font-mono);font-size:12px;font-weight:700;color:var(--text-strong);text-align:right">{{ s.pts }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </section>
               <section style="background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-card);padding:16px">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
                   <h2 style="font-size:13px;font-weight:600;color:var(--text-strong);margin:0">Placements &amp; open needs by state</h2>
@@ -1523,6 +1934,32 @@
   <sc-if value="{{ hasToast }}" hint-placeholder-val="{{ false }}">
     <div style="position:fixed;right:20px;bottom:20px;z-index:600;background:var(--navy-800);color:#ffffff;padding:12px 16px;border-radius:10px;box-shadow:var(--shadow-lg);font-size:12.5px;line-height:1.45;max-width:380px;animation:qm-toast 200ms var(--ease-out)">{{ toastMsg }}</div>
   </sc-if>
+  <sc-if value="{{ hasCelebrate }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;top:70px;left:50%;transform:translateX(-50%);z-index:720;background:linear-gradient(135deg,#1f9d55,#0b8e8e);color:#ffffff;padding:12px 20px;border-radius:99px;box-shadow:0 14px 32px -8px rgba(31,157,85,.6);font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;animation:qm-pop .42s var(--ease-out)">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+      {{ celebrateMsg }}
+    </div>
+  </sc-if>
+  <sc-if value="{{ tourActive }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;left:0;right:0;bottom:0;z-index:700;display:flex;justify-content:center;padding:0 16px 20px;pointer-events:none">
+      <div style="pointer-events:auto;width:min(580px,94vw);background:var(--navy-800);color:#ffffff;border-radius:16px;box-shadow:var(--shadow-lg);padding:16px 18px;border:1px solid rgba(122,180,190,.25);animation:qm-spot .34s var(--ease-out)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span style="font-family:var(--font-mono);font-size:9px;letter-spacing:0.12em;color:#8fe3e3;background:rgba(143,227,227,.14);padding:3px 8px;border-radius:99px;white-space:nowrap">GUIDED TOUR · {{ tourNum }}</span>
+          <div style="font-family:var(--font-display);font-size:16px;font-weight:700;flex:1">{{ tourTitle }}</div>
+          <div onClick="{{ tourClose }}" title="End tour" style="cursor:pointer;color:#9fb0c2;font-size:17px;line-height:1;padding:2px 4px" style-hover="color:#ffffff">✕</div>
+        </div>
+        <div style="font-size:12.5px;line-height:1.55;color:#d4e0e6">{{ tourBody }}</div>
+        <div style="display:flex;align-items:center;gap:9px;margin-top:14px">
+          <div style="display:flex;gap:5px;flex:1;align-items:center">
+            <sc-for list="{{ tourDots }}" as="d" hint-placeholder-count="6"><span onClick="{{ d.go }}" style="height:7px;border-radius:99px;cursor:pointer;transition:var(--transition);{{ d.dotBs }}"></span></sc-for>
+          </div>
+          <button onClick="{{ tourAutoToggle }}" class="qm-btn" style="height:32px;padding:0 13px;border-radius:8px;border:1px solid rgba(143,227,227,.35);background:transparent;color:#8fe3e3;font-size:12px;font-weight:600;cursor:pointer">{{ tourAutoLabel }}</button>
+          <button onClick="{{ tourPrev }}" class="qm-btn" style="height:32px;padding:0 13px;border-radius:8px;border:1px solid rgba(255,255,255,.2);background:transparent;color:#ffffff;font-size:12px;font-weight:600;cursor:pointer">Back</button>
+          <button onClick="{{ tourNext }}" class="qm-btn" style="height:32px;padding:0 15px;border-radius:8px;border:1px solid transparent;background:var(--teal-500);color:#ffffff;font-size:12px;font-weight:600;cursor:pointer">Next</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{
@@ -1532,17 +1969,133 @@
 }">
 class Component extends DCLogic {
   state = {
-    db: null, view: 'dashboard', tab: 'Overview', selQ: 'Q-001', selNeed: 'N-201', toast: null, themeOverride: null, roleOverride: null,
+    db: null, view: 'dashboard', tab: 'Overview', selQ: 'Q-001', selNeed: 'N-201', selL: 'L-101', toast: null, themeOverride: null, roleOverride: null,
+    lPage: 0, lPer: 50, qPage: 0, qPer: 50, dPage: 0, dPer: 50, fLQ: '', fLSort: 'risk',
+    motionOff: false, annot: false, tour: false, tourStep: 0, tourAuto: false, countP: 0, roleBump: 0, celebrate: null,
     fQ: '', fQStatus: 'all', fQState: 'all', fQTrade: 'all', fQAvail: 'all', fQVerif: 'all', fQHealth: 'all',
     fLState: 'all', fLTrade: 'all', fLHealth: 'all', fLExp: 'all',
     fAState: 'all', fATrade: 'all', fAType: 'all', fAComp: 'all', fAMode: 'all',
     fNStatus: 'all', fNUrg: 'all',
     fDStatus: 'all', fDType: 'all',
     fRLevel: 'all', fRStatus: 'active', fROwner: 'all',
-    matchOverrides: {}, riskOverrides: {}
+    authStatus: 'loading', authMessage: '', loginEmail: '', loginPassword: '', loginBusy: false,
+    sessionRole: null, sessionStaffName: null
   };
+  async bootAuth() {
+    try {
+      const api = await import('./qmos-api.js');
+      this._api = api;
+      const session = await api.getSession();
+      if (!session) {
+        this.setState({ authStatus: 'login', authMessage: '', db: null });
+        return;
+      }
+      const role = api.roleFromSession(session);
+      if (!role) {
+        this.setState({
+          authStatus: 'denied',
+          authMessage: 'You’re signed in but not on the QualifierManageOS staff allowlist. Ask an Admin to add your email on staff (active).',
+          db: null
+        });
+        return;
+      }
+      await this.loadLiveDb(role, api.staffNameFromSession(session));
+    } catch (e) {
+      console.error('QMOS auth boot failed', e);
+      this.setState({
+        authStatus: 'login',
+        authMessage: (e && e.message) || 'Could not start session.',
+        db: null
+      });
+    }
+  }
+  async loadLiveDb(role, staffName) {
+    const api = this._api || await import('./qmos-api.js');
+    this._api = api;
+    const db = await api.hydrate();
+    this._idx = null; this._av = null;
+    this.setState({
+      authStatus: 'ready',
+      authMessage: '',
+      db,
+      sessionRole: role,
+      sessionStaffName: staffName || null,
+      roleOverride: null,
+    }, () => this.startCount());
+  }
   componentDidMount() {
-    import('./data.js').then(m => this.setState({ db: m })).catch(e => console.error('QMOS data load failed', e));
+    this.bootAuth();
+  }
+  componentWillUnmount(){ cancelAnimationFrame(this._raf); clearTimeout(this._ct); clearInterval(this._ta); clearTimeout(this._cel); clearTimeout(this._mapT); }
+  componentDidUpdate(){
+    const S = this.state;
+    const theme = S.themeOverride ?? this.props.theme ?? 'light';
+    const key = S.view + '|' + theme + '|' + (S.motionOff ? 1 : 0) + '|' + (S.db ? 1 : 0);
+    if (S.view === 'coverage' && key !== this._mapKey) { this._mapKey = key; this.scheduleMap(); }
+  }
+  scheduleMap(){ clearTimeout(this._mapT); this._mapT = setTimeout(() => this.drawMap(), 50); }
+  async drawMap(){
+    const host = this._mapEl, S = this.state;
+    if (!host || S.view !== 'coverage' || !S.db) return;
+    const d3 = window.d3, topojson = window.topojson;
+    if (!d3 || !topojson) { this._mapTries = (this._mapTries || 0) + 1; if (this._mapTries < 120) return this.scheduleMap(); host.innerHTML = '<div style="padding:26px;color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">Map libraries did not load.</div>'; return; }
+    let topo = this._topo;
+    if (!topo) { try { topo = this._topo = await d3.json('https://cdn.jsdelivr.net/npm/us-atlas@3.0.1/states-10m.json'); } catch (e) { host.innerHTML = '<div style="padding:26px;color:var(--text-muted);font-size:12px;font-family:var(--font-mono)">Could not load US geometry (offline?).</div>'; return; } }
+    if (this._mapEl !== host || this.state.view !== 'coverage') return;
+    try {
+    const db = S.db, theme = (S.themeOverride ?? this.props.theme ?? 'light');
+    const motionOn = !S.motionOff && !(typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion:reduce)').matches);
+    const A2 = {Alabama:'AL',Alaska:'AK',Arizona:'AZ',Arkansas:'AR',California:'CA',Colorado:'CO',Connecticut:'CT',Delaware:'DE','District of Columbia':'DC',Florida:'FL',Georgia:'GA',Hawaii:'HI',Idaho:'ID',Illinois:'IL',Indiana:'IN',Iowa:'IA',Kansas:'KS',Kentucky:'KY',Louisiana:'LA',Maine:'ME',Maryland:'MD',Massachusetts:'MA',Michigan:'MI',Minnesota:'MN',Mississippi:'MS',Missouri:'MO',Montana:'MT',Nebraska:'NE',Nevada:'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND',Ohio:'OH',Oklahoma:'OK',Oregon:'OR',Pennsylvania:'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD',Tennessee:'TN',Texas:'TX',Utah:'UT',Vermont:'VT',Virginia:'VA',Washington:'WA','West Virginia':'WV',Wisconsin:'WI',Wyoming:'WY'};
+    const AV = new Set(['Available Now','Limited Availability','Available Soon']);
+    const stats = {}; const St = a => (stats[a] = stats[a] || { lic:new Set(), avail:new Set(), needs:0, pl:0 });
+    const qById = id => db.QUALIFIERS.find(q => q.id === id), avOf = id => db.AVAILABILITY.find(a => a.qualifierId === id);
+    db.QUALIFIERS.forEach(q => St(q.stateOfResidence));
+    db.LICENSES.forEach(l => { const s = St(l.state); s.lic.add(l.qualifierId); const q = qById(l.qualifierId), a = avOf(l.qualifierId); if (q && q.availableForPlacement && a && AV.has(a.availabilityStatus) && l.canBeUsedForPlacement) s.avail.add(l.qualifierId); });
+    db.NEEDS.forEach(n => { if (['Open','Under Review','Match Proposed','Match Approved'].includes(n.needStatus)) St(n.neededState).needs++; });
+    db.PLACEMENTS.forEach(p => { const q = qById(p.qualifierId); if (!q) return; const lic = db.LICENSES.find(l => l.qualifierId === q.id); const st = lic ? lic.state : q.stateOfResidence; if (['Active','Ending Soon','At Risk'].includes(p.placementStatus)) St(st).pl++; });
+    const covOf = a => stats[a] ? stats[a].lic.size : 0; const maxCov = Math.max(1, ...Object.keys(stats).map(covOf));
+    const cityAgg = {}; db.QUALIFIERS.forEach(q => { const c = q.city; if (!db.CITIES || !db.CITIES[c]) return; const g = cityAgg[c] = cityAgg[c] || { city:c, state:q.stateOfResidence, coord:db.CITIES[c], qs:[], avail:0 }; const a = avOf(q.id); const av = q.availableForPlacement && a && AV.has(a.availabilityStatus); g.qs.push({ name:q.fullName, status:q.status, avail:av }); if (av) g.avail++; });
+    const cities = Object.values(cityAgg); const gaps = (db.COVERAGE_GAPS || []).filter(g => db.CITIES && db.CITIES[g.city]);
+    const RAMP = theme === 'dark' ? ['#1b2d44','#194f4d','#12726d','#0e968f','#1ab8b1','#38d3cc'] : ['#dce4ef','#bfe0dd','#8fd0cc','#4fb8b4','#1aa6a6','#0b7f7f'];
+    const fillFor = a => { const c = covOf(a); if (c <= 0) return RAMP[0]; const t = Math.min(1, c/maxCov); const i = 1 + Math.round(t*(RAMP.length-2)); return RAMP[Math.max(1, Math.min(RAMP.length-1, i))]; };
+    const line = theme === 'dark' ? '#0a1524' : '#ffffff';
+    host.innerHTML = ''; host.style.position = 'relative';
+    const states = topojson.feature(topo, topo.objects.states).features.filter(f => f.geometry);
+    const proj = d3.geoAlbersUsa().scale(1230).translate([480,302]); const path = d3.geoPath(proj);
+    const svg = d3.select(host).append('svg').attr('viewBox','0 0 960 600').attr('preserveAspectRatio','xMidYMid meet').style('width','100%').style('height','100%').style('display','block');
+    if (motionOn) svg.node().style.animation = 'qm-fade .5s ease';
+    const tip = document.createElement('div'); tip.style.cssText = 'position:absolute;pointer-events:none;z-index:20;min-width:170px;max-width:270px;background:var(--surface-card);border:1px solid var(--border-subtle);border-radius:12px;box-shadow:var(--shadow-lg);padding:10px 12px;font-size:12px;opacity:0;transition:opacity .15s;color:var(--text-body)'; host.appendChild(tip);
+    const showTip = (html, ev) => { tip.innerHTML = html; tip.style.opacity = '1'; const r = host.getBoundingClientRect(); let x = ev.clientX-r.left+14, y = ev.clientY-r.top+14; if (x+tip.offsetWidth > r.width-8) x = ev.clientX-r.left-tip.offsetWidth-14; if (y+tip.offsetHeight > r.height-8) y = ev.clientY-r.top-tip.offsetHeight-14; tip.style.left = Math.max(6,x)+'px'; tip.style.top = Math.max(6,y)+'px'; };
+    const hideTip = () => tip.style.opacity = '0';
+    const R = (l,v,c) => '<div style="display:flex;justify-content:space-between;color:var(--text-muted)">'+l+'<b style="color:'+(c||'var(--text-strong)')+';font-family:var(--font-mono)">'+v+'</b></div>';
+    const nodes = svg.append('g').selectAll('path').data(states).join('path').attr('class','qm-state').attr('d', d => { try { return path(d); } catch(e){ return null; } }).attr('stroke', line).attr('stroke-width', 0.8).attr('stroke-linejoin','round').attr('fill', RAMP[0]);
+    nodes.on('mousemove', (ev,d) => { const a = A2[d.properties.name]; const s = stats[a]; const cov = covOf(a), av = s?s.avail.size:0, needs = s?s.needs:0, pl = s?s.pl:0; const gap = gaps.find(g=>g.state===a); const badge = cov===0?(needs>0?'GAP':'NO COVERAGE'):(av>0?'COVERED':'LICENSED'); const bc = cov===0?(needs>0?'#c47f1a':'#8a94a3'):'#0b8e8e'; let nm=''; if (s&&cov>0){ const ls=[...s.lic].map(qById).filter(Boolean).slice(0,4).map(q=>q.fullName).join(', '); nm='<div style="margin-top:6px;padding-top:6px;border-top:1px dashed var(--border-subtle);color:var(--text-muted);line-height:1.5">'+ls+(cov>4?' +'+(cov-4)+' more':'')+'</div>'; } const gh = gap?'<div style="margin-top:6px;color:#c47f1a;font-weight:600;line-height:1.4">\u26a0 '+gap.reason+'</div>':''; showTip('<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:5px"><b style="font-size:13.5px">'+d.properties.name+'</b><span style="font-family:var(--font-mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:'+bc+'22;color:'+bc+'">'+badge+'</span></div>'+R('Licensed qualifiers',cov)+R('Available now',av)+R('Active placements',pl)+R('Open needs',needs)+nm+gh, ev); }).on('mouseleave', hideTip);
+    if (motionOn) { nodes.nodes().forEach((n,i) => n.style.transitionDelay = (Math.min(i,60)*8)+'ms'); setTimeout(() => { nodes.attr('fill', d => fillFor(A2[d.properties.name])); setTimeout(() => nodes.nodes().forEach(n => n.style.transitionDelay = '0ms'), 1500); }, 70); } else { nodes.attr('fill', d => fillFor(A2[d.properties.name])); }
+    const gp = svg.append('g');
+    gaps.forEach((g,i) => { const p = proj(db.CITIES[g.city]); if (!p) return; const col = g.severity==='high'?'#e23b2e':'#e8a33d'; const grp = gp.append('g').attr('transform','translate('+p[0]+','+p[1]+')'); if (motionOn) { const rg = grp.append('circle').attr('r',6).attr('fill',col).attr('opacity',0.3); rg.node().style.transformOrigin='center'; rg.node().style.animation='qm-gpulse 2.2s ease-in-out infinite'; rg.node().style.animationDelay=(i*0.25)+'s'; } grp.append('circle').attr('r',4.5).attr('fill',col).attr('stroke','#fff').attr('stroke-width',1.4).style('cursor','pointer').on('mousemove', ev => showTip('<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px"><b>'+g.city+', '+g.state+'</b><span style="font-family:var(--font-mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:'+col+'22;color:'+col+'">GAP</span></div><div style="color:#c47f1a;font-weight:600;line-height:1.4">\u26a0 '+g.reason+'</div>'+R('Open needs',g.openNeeds), ev)).on('mouseleave', hideTip); });
+    cities.forEach(g => { const p = proj(g.coord); if (!p) return; const r = 4 + Math.min(6, g.qs.length*1.6); const col = g.avail>0?'#1f9d55':'#0b8e8e'; const grp = gp.append('g').attr('transform','translate('+p[0]+','+p[1]+')'); grp.append('circle').attr('r',r+4).attr('fill',col).attr('opacity',0.16); grp.append('circle').attr('r',r).attr('fill',col).attr('stroke','#fff').attr('stroke-width',1.6).style('cursor','pointer').on('mousemove', ev => { const rows = g.qs.slice(0,5).map(q => R(q.name, q.avail?'AVAIL':q.status.split(' ')[0], q.avail?'#1f9d55':'#8a94a3')).join(''); showTip('<div style="display:flex;justify-content:space-between;gap:8px;margin-bottom:4px"><b>'+g.city+', '+g.state+'</b><span style="font-family:var(--font-mono);font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:#0b8e8e22;color:#0b8e8e">'+g.qs.length+'</span></div>'+rows, ev); }).on('mouseleave', hideTip); if (g.qs.length>1) grp.append('text').text(g.qs.length).attr('text-anchor','middle').attr('dy','3.2').attr('font-size','9px').attr('font-weight','700').attr('fill','#fff').style('pointer-events','none').style('font-family','var(--font-mono)'); });
+    } catch (e) { console.error('QMOS map draw failed:', e && (e.message || e), e && e.stack); }
+  }
+  mapRef = el => { this._mapEl = el; if (el) { this._mapTries = 0; this.scheduleMap(); } };
+  reduced(){ return this.state.motionOff || (typeof matchMedia==='function' && matchMedia('(prefers-reduced-motion:reduce)').matches); }
+  startCount(){
+    if(this.reduced()){ this.setState({ countP: 1 }); return; }
+    cancelAnimationFrame(this._raf); const t0 = performance.now(), dur = 950;
+    const tick = t => { const p = Math.min(1,(t-t0)/dur); this.setState({ countP: 1-Math.pow(1-p,3) }); if(p<1) this._raf = requestAnimationFrame(tick); };
+    this.setState({ countP: 0 }); this._raf = requestAnimationFrame(tick);
+    clearTimeout(this._ct); this._ct = setTimeout(()=>this.setState({ countP: 1 }), 1150);
+  }
+  celebrateNow(msg){ clearTimeout(this._cel); this.setState({ celebrate: msg }); this._cel = setTimeout(()=>this.setState({ celebrate: null }), 3200); }
+  toggleMotion(){ this.setState(s=>({ motionOff: !s.motionOff }), ()=>{ if(!this.state.motionOff && this.state.view==='dashboard') this.startCount(); }); }
+  toggleAnnot(){ this.setState(s=>({ annot: !s.annot })); }
+  TOUR = [['dashboard','Dashboard','KPI tiles count up, readiness donut fills, panels fade in — hover any tile.'],['qualifiers','Contractor Profiles','Verified badges, readiness rings and reliability streaks. Rows lift on hover.'],['coverage','Coverage Map','Density shades states live; green pins are available benches; amber/red dots pulse over coverage gaps.'],['match','Match Center','Candidate cards stagger in, fit scores fill, and Approve / Hold / Reject are gated to Admin & Leadership.'],['risk','Risk Review','Severity-ranked queue with pulsing dots; act to escalate or resolve with an audit trail.'],['reports','Reports & Insights','Live operational health plus the staff activity leaderboard and achievement streaks.']];
+  goTour(i){ const n=this.TOUR.length, idx=((i%n)+n)%n; this.setState({ tour:true, tourStep:idx, view:this.TOUR[idx][0] }, ()=>this.startCount()); }
+  startTour(){ this.setState(s=>({ tour: !s.tour }), ()=>{ if(this.state.tour) this.goTour(0); else this.tourStop(); }); }
+  tourStop(){ clearInterval(this._ta); this.setState({ tour:false, tourAuto:false }); }
+  tourAutoToggle(){
+    if(this.state.tourAuto){ clearInterval(this._ta); this.setState({ tourAuto:false }); return; }
+    this.setState({ tourAuto:true });
+    this._ta = setInterval(()=>{ const nx=this.state.tourStep+1; if(nx>=this.TOUR.length){ this.tourStop(); } else { this.goTour(nx); } }, 3600);
   }
   // ---------- helpers ----------
   dn(s) { if (!s) return null; return Math.round((new Date(s + 'T00:00:00') - new Date('2026-07-24T00:00:00')) / 86400000); }
@@ -1553,6 +2106,21 @@ class Component extends DCLogic {
   go(v) { return () => this.setState({ view: v }); }
   openQ(id) { return () => this.setState({ view: 'qualifier-detail', selQ: id, tab: 'Overview' }); }
   openNeed(id) { return () => this.setState({ view: 'match', selNeed: id }); }
+  openL(id) { return () => this.setState({ view: 'license-detail', selL: id }); }
+  setP(k, pk) { return e => this.setState({ [k]: e && e.target ? e.target.value : e, [pk]: 0 }); }
+  pager(total, page, per) {
+    const pages = Math.max(1, Math.ceil(total / per));
+    const p = Math.max(0, Math.min(page, pages - 1));
+    const btn = on => 'height:26px;padding:0 10px;border-radius:7px;font-family:var(--font-mono);font-size:10.5px;font-weight:600;border:1px solid var(--border-default);background:var(--surface-card);display:inline-flex;align-items:center;color:' + (on ? 'var(--text-body)' : 'var(--text-subtle)') + ';cursor:' + (on ? 'pointer' : 'default') + ';opacity:' + (on ? '1' : '0.4');
+    return {
+      start: p * per, end: (p + 1) * per, pages,
+      range: (total === 0 ? 0 : p * per + 1) + '–' + Math.min(total, (p + 1) * per) + ' of ' + total,
+      pageTxt: 'PAGE ' + (p + 1) + ' / ' + pages, prevBs: btn(p > 0), nextBs: btn(p < pages - 1)
+    };
+  }
+  pagerNav(pg, key) {
+    return { first: () => this.setState({ [key]: 0 }), prev: () => this.setState({ [key]: Math.max(0, Math.floor(pg.start / (pg.end - pg.start)) - 1) }), next: () => this.setState({ [key]: Math.min(pg.pages - 1, Math.floor(pg.start / (pg.end - pg.start)) + 1) }), last: () => this.setState({ [key]: pg.pages - 1 }) };
+  }
   say(msg) { clearTimeout(this._tt); this.setState({ toast: msg }); this._tt = setTimeout(() => this.setState({ toast: null }), 4200); }
   tone(t) {
     if (t === 'hr') return (this.props.theme === 'dark') ? 'background:rgba(151,113,235,0.20);color:#c0a8f7' : 'background:rgba(124,77,208,0.12);color:#6d43c8';
@@ -1588,6 +2156,7 @@ class Component extends DCLogic {
   RSS = { 'Open': 'warn', 'In Review': 'info', 'Resolved': 'ok', 'Dismissed': 'neutral', 'Escalated': 'bad' };
   ROLE_USERS = { 'Leadership': 'Rose Martinez', 'Admin': 'Dana Whitfield', 'Placement Coordinator': 'Carmen Delgado', 'Fulfillment': 'Marcus Lee', 'Sales Viewer': 'Kim Sato' };
   ICONS = {
+    coverage: 'M9 20l-5-2.5V5l5 2.5m0 13 6-3m-6 3V7.5m6 9.5 5 2.5V6.5L15 4m0 13V4m0 0L9 7.5',
     opportunities: 'M22 12a10 10 0 1 1-20 0 10 10 0 0 1 20 0M12 2v3M12 19v3M2 12h3M19 12h3M12 8.5a3.5 3.5 0 1 0 0 7 3.5 3.5 0 0 0 0-7',
     dashboard: 'M3 3h7v9H3zM14 3h7v5h-7zM14 12h7v9h-7zM3 16h7v5H3z',
     qualifiers: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M13 7a4 4 0 1 0-8 0 4 4 0 1 0 8 0M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75',
@@ -1601,17 +2170,28 @@ class Component extends DCLogic {
     reports: 'M3 3v18h18M18 17V9M13 17V5M8 17v-3',
     settings: 'M21 4h-7M10 4H3M21 12h-9M8 12H3M21 20h-5M12 20H3M14 2v4M8 10v4M16 18v4'
   };
-  // ---------- effective (mutable) collections ----------
-  effMatches() { const o = this.state.matchOverrides; return this.state.db.MATCHES.map(m => ({ ...m, ...(o[m.id] || {}) })); }
-  effRisks() { const o = this.state.riskOverrides; return this.state.db.RISKS.map(r => ({ ...r, ...(o[r.id] || {}) })); }
-  qById(id) { return this.state.db.QUALIFIERS.find(q => q.id === id); }
-  lById(id) { return this.state.db.LICENSES.find(l => l.id === id); }
+  // ---------- effective collections (live rows; overrides unused after API wire) ----------
+  effMatches() { return (this.state.db && this.state.db.MATCHES) ? this.state.db.MATCHES : []; }
+  effRisks() { return (this.state.db && this.state.db.RISKS) ? this.state.db.RISKS : []; }
+  idx() {
+    if (!this._idx && this.state.db) {
+      const q = {}, l = {}, lq = {}, dl = {};
+      this.state.db.QUALIFIERS.forEach(x => q[x.id] = x);
+      this.state.db.LICENSES.forEach(x => { l[x.id] = x; (lq[x.qualifierId] = lq[x.qualifierId] || []).push(x); });
+      this.state.db.DOCUMENTS.forEach(x => { if (x.relatedLicenseId) (dl[x.relatedLicenseId] = dl[x.relatedLicenseId] || []).push(x); });
+      this._idx = { q, l, lq, dl };
+    }
+    return this._idx || { q: {}, l: {}, lq: {}, dl: {} };
+  }
+  licsOf(qid) { return this.idx().lq[qid] || []; }
+  qById(id) { return this.idx().q[id]; }
+  lById(id) { return this.idx().l[id]; }
   nById(id) { return this.state.db.NEEDS.find(n => n.id === id); }
   pById(id) { return this.state.db.PLACEMENTS.find(p => p.id === id); }
-  avOf(qid) { return this.state.db.AVAILABILITY.find(a => a.qualifierId === qid); }
+  avOf(qid) { if (!this._av) { this._av = {}; (this.state.db.AVAILABILITY || []).forEach(a => { if (!this._av[a.qualifierId]) this._av[a.qualifierId] = a; }); } return this._av[qid]; }
   worstHealth(qid) {
     const rank = { 'Do Not Place Pending Review': 0, 'Expired': 1, 'Human Review Required': 2, 'Missing Verification': 3, 'Expiring Soon': 4, 'Renewal Window': 5, 'Verified Current': 6 };
-    const ls = this.state.db.LICENSES.filter(l => l.qualifierId === qid);
+    const ls = this.licsOf(qid);
     if (!ls.length) return null;
     return ls.reduce((w, l) => rank[l.licenseHealthStatus] < rank[w] ? l.licenseHealthStatus : w, ls[0].licenseHealthStatus);
   }
@@ -1629,28 +2209,63 @@ class Component extends DCLogic {
     return null;
   }
   approveMatch(id, status) {
-    return () => {
-      const user = this.ROLE_USERS[this.props.role ?? 'Admin'];
-      const o = { ...this.state.matchOverrides, [id]: { adminApprovalStatus: status, reviewedBy: user, reviewedDate: '2026-07-24' } };
-      this.setState({ matchOverrides: o });
-      this.say('Match ' + id + ' marked ' + status + ' by ' + user + ' — decision logged for audit. Human review required before external use.');
+    return async () => {
+      const lock = 'match:' + id;
+      if (this._writeBusy && this._writeBusy.has(lock)) return;
+      (this._writeBusy || (this._writeBusy = new Set())).add(lock);
+      try {
+        const api = this._api || await import('./qmos-api.js');
+        const row = await api.approveMatch(id, status);
+        const mapped = {
+          adminApprovalStatus: row.adminApprovalStatus || status,
+          reviewedBy: row.reviewedBy || this.state.sessionStaffName,
+          reviewedDate: row.reviewedDate
+        };
+        const MATCHES = this.state.db.MATCHES.map(m => m.id === id ? { ...m, ...mapped } : m);
+        this._idx = null;
+        const user = mapped.reviewedBy || this.state.sessionStaffName || 'staff';
+        this.setState({ db: { ...this.state.db, MATCHES } });
+        if (status === 'Approved') this.celebrateNow('Match ' + id + ' approved by ' + user + ' — placement can advance. Decision recorded.');
+        else this.say('Match ' + id + ' marked ' + status + ' by ' + user + ' — decision recorded.');
+      } catch (e) {
+        this.say((e && e.message) || 'Match approval failed.');
+      } finally {
+        this._writeBusy.delete(lock);
+      }
     };
   }
   setRisk(id, status) {
-    return () => {
-      const o = { ...this.state.riskOverrides, [id]: { riskStatus: status } };
-      this.setState({ riskOverrides: o });
-      this.say('Risk ' + id + ' → ' + status + '. Logged to the audit trail.');
+    return async () => {
+      const lock = 'risk:' + id;
+      if (this._writeBusy && this._writeBusy.has(lock)) return;
+      (this._writeBusy || (this._writeBusy = new Set())).add(lock);
+      try {
+        const api = this._api || await import('./qmos-api.js');
+        const row = await api.setRisk(id, status);
+        const RISKS = this.state.db.RISKS.map(r => r.id === id ? { ...r, riskStatus: row.riskStatus || status } : r);
+        this.setState({ db: { ...this.state.db, RISKS } });
+        this.say('Risk ' + id + ' → ' + status + '. Decision recorded.');
+      } catch (e) {
+        this.say((e && e.message) || 'Risk update failed.');
+      } finally {
+        this._writeBusy.delete(lock);
+      }
     };
   }
   // ---------- renderVals ----------
   renderVals() {
-    const S = this.state, theme = S.themeOverride ?? this.props.theme ?? 'light', role = S.roleOverride ?? this.props.role ?? 'Admin';
+    const S = this.state, theme = S.themeOverride ?? this.props.theme ?? 'light';
+    const role = S.sessionRole || S.roleOverride || this.props.role || 'Admin';
     const canAdmin = role === 'Leadership' || role === 'Admin';
     const canEditRisk = role !== 'Sales Viewer';
-    const roleUser = this.ROLE_USERS[role] || 'Dana Whitfield';
+    const roleUser = S.sessionStaffName || this.ROLE_USERS[role] || 'Staff';
     const view = S.view;
-    const crumbs = { dashboard: 'DASHBOARD', qualifiers: 'QUALIFIERS', 'qualifier-detail': 'QUALIFIERS / PROFILE', licenses: 'LICENSES', availability: 'AVAILABILITY', needs: 'PLACEMENT NEEDS', opportunities: 'OPPORTUNITIES', match: 'MATCH CENTER', placements: 'ACTIVE PLACEMENTS', documents: 'DOCUMENTS', risk: 'RISK REVIEW', reports: 'REPORTS', settings: 'SETTINGS' };
+    const authStatus = S.authStatus || 'loading';
+    const authGate = authStatus !== 'ready';
+    const authLoading = authStatus === 'loading';
+    const authLogin = authStatus === 'login';
+    const authDenied = authStatus === 'denied';
+    const crumbs = { dashboard: 'DASHBOARD', qualifiers: 'QUALIFIERS', 'qualifier-detail': 'QUALIFIERS / PROFILE', licenses: 'LICENSES', 'license-detail': 'LICENSES / RECORD', coverage: 'COVERAGE MAP', availability: 'AVAILABILITY', needs: 'PLACEMENT NEEDS', opportunities: 'OPPORTUNITIES', match: 'MATCH CENTER', placements: 'ACTIVE PLACEMENTS', documents: 'DOCUMENTS', risk: 'RISK REVIEW', reports: 'REPORTS', settings: 'SETTINGS' };
     const db = S.db;
     const navBase = 'display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:11px;cursor:pointer;font-size:13px;font-weight:500;transition:var(--transition);';
     const CH = {
@@ -1665,7 +2280,7 @@ class Component extends DCLogic {
       slate: ['#8fa3b5', '#5b6675', 'rgba(91,102,117,.4)', 'rgba(91,102,117,.13)']
     };
     const mkNav = (key, label, icon, count, countTone, hue) => {
-      const active = view === key || (key === 'qualifiers' && view === 'qualifier-detail');
+      const active = view === key || (key === 'qualifiers' && view === 'qualifier-detail') || (key === 'licenses' && view === 'license-detail');
       const c = CH[hue] || CH.teal;
       return {
         label, d: this.ICONS[icon], active, go: () => this.setState({ view: key }),
@@ -1682,18 +2297,52 @@ class Component extends DCLogic {
       sideText: (theme === 'dark' ? '#c4d2d6' : 'var(--text-muted)'), sideFaint: (theme === 'dark' ? '#93a3b8' : 'var(--text-subtle)'),
       roleShort: role, themeIcon: (theme === 'dark' ? 'M12 17a5 5 0 1 0 0-10 5 5 0 0 0 0 10zM12 1v2M12 21v2M4.2 4.2l1.4 1.4M18.4 18.4l1.4 1.4M1 12h2M21 12h2M4.2 19.8l1.4-1.4M18.4 5.6l1.4-1.4' : 'M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z'),
       toggleTheme: () => this.setState(s => ({ themeOverride: ((s.themeOverride ?? this.props.theme ?? 'light') === 'dark') ? 'light' : 'dark' })),
-      cycleRole: () => { const RL = ['Leadership', 'Admin', 'Placement Coordinator', 'Fulfillment', 'Sales Viewer']; const cur = this.state.roleOverride ?? this.props.role ?? 'Admin'; const nx = RL[(RL.indexOf(cur) + 1) % RL.length]; this.setState({ roleOverride: nx }); this.say('Now viewing as ' + nx + (nx === 'Sales Viewer' ? ' — admin notes & internal risk detail are hidden.' : '.')); },
-      canAdmin, canEditRisk, crumb: crumbs[view] || 'DASHBOARD', today: 'Jul 24, 2026', todayCaps: 'JUL 24, 2026',
-      vDash: view === 'dashboard', vQual: view === 'qualifiers', vQdet: view === 'qualifier-detail', vLic: view === 'licenses', vAvail: view === 'availability', vNeeds: view === 'needs', vOpp: view === 'opportunities', vMatch: view === 'match', vPlace: view === 'placements', vDocs: view === 'documents', vRisk: view === 'risk', vReports: view === 'reports', vSettings: view === 'settings',
+      authGate, authLoading, authLogin, authDenied, authMessage: S.authMessage || '',
+      hasAuthError: !!(S.authMessage && authLogin),
+      loginEmail: S.loginEmail || '', loginPassword: S.loginPassword || '',
+      loginBtn: S.loginBusy ? 'Signing in…' : 'Sign in',
+      setLoginEmail: e => this.setState({ loginEmail: e.target.value }),
+      setLoginPassword: e => this.setState({ loginPassword: e.target.value }),
+      doLogin: async () => {
+        if (S.loginBusy) return;
+        this.setState({ loginBusy: true, authMessage: '' });
+        try {
+          const api = this._api || await import('./qmos-api.js');
+          this._api = api;
+          const session = await api.signIn(S.loginEmail, S.loginPassword);
+          await this.loadLiveDb(api.roleFromSession(session), api.staffNameFromSession(session));
+        } catch (e) {
+          const code = e && e.code;
+          if (code === 'not_allowlisted') {
+            this.setState({ authStatus: 'denied', authMessage: e.message, loginBusy: false, loginPassword: '' });
+          } else {
+            this.setState({ authStatus: 'login', authMessage: (e && e.message) || 'Sign-in failed.', loginBusy: false });
+          }
+        }
+      },
+      doSignOut: async () => {
+        try {
+          const api = this._api || await import('./qmos-api.js');
+          await api.signOut();
+        } catch (e) { /* ignore */ }
+        this.setState({
+          authStatus: 'login', authMessage: '', db: null, sessionRole: null, sessionStaffName: null,
+          loginPassword: '', loginBusy: false
+        });
+      },
+      canAdmin, canEditRisk, crumb: crumbs[view] || 'DASHBOARD',
+      today: (S.db && S.db.TODAY) ? S.db.TODAY : new Date().toISOString().slice(0, 10),
+      todayCaps: ((S.db && S.db.TODAY) ? S.db.TODAY : new Date().toISOString().slice(0, 10)).toUpperCase(),
+      vDash: view === 'dashboard', vQual: view === 'qualifiers', vQdet: view === 'qualifier-detail', vLic: view === 'licenses', vLdet: view === 'license-detail', vAvail: view === 'availability', vNeeds: view === 'needs', vOpp: view === 'opportunities', vMatch: view === 'match', vPlace: view === 'placements', vCoverage: view === 'coverage', vDocs: view === 'documents', vRisk: view === 'risk', vReports: view === 'reports', vSettings: view === 'settings',
       hasToast: !!S.toast, toastMsg: S.toast,
       brandGo: this.go('dashboard'), bellGo: this.go('risk'), goRisk: this.go('risk'), goMatch: this.go('match'), goLic: this.go('licenses'), goQual: this.go('qualifiers'), goPlace: this.go('placements'), goDocs: this.go('documents'), goOpp: this.go('opportunities'), backQ: this.go('qualifiers'),
-      fQ: S.fQ, setTopQ: e => this.setState({ fQ: e.target.value, view: 'qualifiers' }), setFQ: this.set('fQ'),
-      fQStatus: S.fQStatus, setFQStatus: this.set('fQStatus'), fQState: S.fQState, setFQState: this.set('fQState'), fQTrade: S.fQTrade, setFQTrade: this.set('fQTrade'), fQAvail: S.fQAvail, setFQAvail: this.set('fQAvail'), fQVerif: S.fQVerif, setFQVerif: this.set('fQVerif'), fQHealth: S.fQHealth, setFQHealth: this.set('fQHealth'),
-      clearQ: () => this.setState({ fQ: '', fQStatus: 'all', fQState: 'all', fQTrade: 'all', fQAvail: 'all', fQVerif: 'all', fQHealth: 'all' }),
-      fLState: S.fLState, setFLState: this.set('fLState'), fLTrade: S.fLTrade, setFLTrade: this.set('fLTrade'), fLHealth: S.fLHealth, setFLHealth: this.set('fLHealth'), fLExp: S.fLExp, setFLExp: this.set('fLExp'),
+      fQ: S.fQ, setTopQ: e => this.setState({ fQ: e.target.value, view: 'qualifiers', qPage: 0 }), setFQ: this.setP('fQ', 'qPage'),
+      fQStatus: S.fQStatus, setFQStatus: this.setP('fQStatus', 'qPage'), fQState: S.fQState, setFQState: this.setP('fQState', 'qPage'), fQTrade: S.fQTrade, setFQTrade: this.setP('fQTrade', 'qPage'), fQAvail: S.fQAvail, setFQAvail: this.setP('fQAvail', 'qPage'), fQVerif: S.fQVerif, setFQVerif: this.setP('fQVerif', 'qPage'), fQHealth: S.fQHealth, setFQHealth: this.setP('fQHealth', 'qPage'),
+      clearQ: () => this.setState({ fQ: '', fQStatus: 'all', fQState: 'all', fQTrade: 'all', fQAvail: 'all', fQVerif: 'all', fQHealth: 'all', qPage: 0 }),
+      fLState: S.fLState, setFLState: this.setP('fLState', 'lPage'), fLTrade: S.fLTrade, setFLTrade: this.setP('fLTrade', 'lPage'), fLHealth: S.fLHealth, setFLHealth: this.setP('fLHealth', 'lPage'), fLExp: S.fLExp, setFLExp: this.setP('fLExp', 'lPage'),
       fAState: S.fAState, setFAState: this.set('fAState'), fATrade: S.fATrade, setFATrade: this.set('fATrade'), fAType: S.fAType, setFAType: this.set('fAType'), fAComp: S.fAComp, setFAComp: this.set('fAComp'), fAMode: S.fAMode, setFAMode: this.set('fAMode'),
       fNStatus: S.fNStatus, setFNStatus: this.set('fNStatus'), fNUrg: S.fNUrg, setFNUrg: this.set('fNUrg'),
-      fDStatus: S.fDStatus, setFDStatus: this.set('fDStatus'), fDType: S.fDType, setFDType: this.set('fDType'),
+      fDStatus: S.fDStatus, setFDStatus: this.setP('fDStatus', 'dPage'), fDType: S.fDType, setFDType: this.setP('fDType', 'dPage'),
       fRLevel: S.fRLevel, setFRLevel: this.set('fRLevel'), fRStatus: S.fRStatus, setFRStatus: this.set('fRStatus'), fROwner: S.fROwner, setFROwner: this.set('fROwner'),
       addQualifier: () => this.say('Qualifier intake form ships with the Phase 1 database wiring — this prototype is read-mostly. New records land through Intake → Documents Requested → Under Review → Verified.'),
       addNeed: () => this.say('New placement needs are logged by coordinators in the production build — stubbed in this prototype.'),
@@ -1707,6 +2356,7 @@ class Component extends DCLogic {
         mkNav('opportunities', 'Opportunities', 'opportunities', db ? this.state.db.NEEDS.filter(n => !['Closed', 'Active', 'Match Approved'].includes(n.needStatus)).length : 0, 'neutral', 'amber'),
         mkNav('match', 'Match Center', 'match', db ? this.effMatches().filter(m => m.adminApprovalStatus === 'Pending').length : 0, 'hr', 'purple'),
         mkNav('placements', 'Active Placements', 'placements', 0, null, 'violet'),
+        mkNav('coverage', 'Coverage Map', 'coverage', db ? (this.state.db.COVERAGE_GAPS || []).length : 0, 'bad', 'teal'),
         mkNav('documents', 'Documents', 'documents', db ? this.state.db.DOCUMENTS.filter(d => ['Requested', 'Needs Update', 'Expired'].includes(d.documentStatus)).length : 0, 'neutral', 'blue'),
         mkNav('risk', 'Risk Review', 'risk', db ? this.effRisks().filter(r => ['Open', 'In Review', 'Escalated'].includes(r.riskStatus)).length : 0, 'bad', 'red'),
         mkNav('reports', 'Reports', 'reports', 0, null, 'teal'),
@@ -1714,8 +2364,30 @@ class Component extends DCLogic {
       ],
       hasBell: false, bellCount: 0
     };
+    const motionOn = !S.motionOff;
+    base.motionOn = motionOn; base.motionAttr = motionOn ? 'on' : 'off';
+    base.motionIcon = motionOn ? 'M22 12h-4l-3 9L9 3l-3 9H2' : 'M3 12h18';
+    const _chip = on => on ? 'border:1px solid var(--accent);background:rgba(11,142,142,.13);color:var(--accent)' : 'border:1px solid var(--border-default);background:var(--surface-card);color:var(--text-muted)';
+    base.motionBtnBs = _chip(motionOn); base.annotBtnBs = _chip(S.annot); base.tourBtnBs = _chip(S.tour);
+    base.annotOn = S.annot; base.toggleMotion = () => this.toggleMotion(); base.toggleAnnot = () => this.toggleAnnot(); base.startTour = () => this.startTour();
+    base.rolePillCls = (S.roleBump % 2 === 0) ? 'qm-rolepop-a' : 'qm-rolepop-b';
+    base.mapRef = this.mapRef;
+    base.mapSrc = 'coverage-map.html?theme=' + theme + '&motion=' + (motionOn ? 'on' : 'off');
+    base.tourActive = S.tour; base.tourAuto = S.tourAuto;
+    if (S.tour) { const t = this.TOUR[S.tourStep] || this.TOUR[0];
+      base.tourTitle = t[1]; base.tourBody = t[2]; base.tourNum = (S.tourStep + 1) + ' / ' + this.TOUR.length;
+      base.tourPrev = () => this.goTour(S.tourStep - 1); base.tourNext = () => this.goTour(S.tourStep + 1);
+      base.tourClose = () => this.tourStop(); base.tourAutoToggle = () => this.tourAutoToggle();
+      base.tourAutoLabel = S.tourAuto ? 'Pause' : 'Auto-play'; base.tourAutoOn = S.tourAuto;
+      base.tourDots = this.TOUR.map((x, i) => ({ dotBs: i === S.tourStep ? 'background:var(--accent);width:20px' : 'background:var(--border-strong);width:7px', go: () => this.goTour(i) }));
+    }
+    base.hasCelebrate = !!S.celebrate; base.celebrateMsg = S.celebrate;
+    const annotTexts = { dashboard: 'KPI tiles count up on load · delta pills animate · the readiness donut fills · every panel fades in · hover any tile or row to lift.', match: 'Candidate cards stagger in · the fit-score ring pops · Approve / Hold / Reject animate on press and are gated to Admin & Leadership.', coverage: 'State fill animates by density · green pins = available bench · amber & red gap dots pulse · hover states and pins for live detail.', qualifiers: 'Each row carries a Verified check, an Elite / Ready readiness tier, and a reliability-streak badge · rows lift on hover.', reports: 'Bars grow in on load · the staff leaderboard ranks activity with gold / silver / bronze medals.' };
+    base.annotText = annotTexts[view] || 'Toggle Cues to reveal motion & interaction hints across the module you are viewing.';
+    base.prioCount = 0; base.readiness = { avg: 0, ringBs: '', bars: [] };
     if (!db) return base;
     const Q = db.QUALIFIERS, L = db.LICENSES, N = db.NEEDS, P = db.PLACEMENTS, D = db.DOCUMENTS, RV = db.REVIEWS, AVL = db.AVAILABILITY;
+    const cp = S.countP;
     const M = this.effMatches(), R = this.effRisks();
     const openRisk = R.filter(r => ['Open', 'In Review', 'Escalated'].includes(r.riskStatus));
     const highRisk = openRisk.filter(r => r.riskLevel === 'High' || r.riskLevel === 'Critical');
@@ -1730,7 +2402,7 @@ class Component extends DCLogic {
     const missDocs = D.filter(d => ['Requested', 'Needs Update', 'Expired'].includes(d.documentStatus));
     const gaps = livePl.filter(p => p.backupQualifierNeeded && !p.backupQualifierIdentified);
     const kIcon = { people: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M13 7a4 4 0 1 0-8 0 4 4 0 1 0 8 0M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75', usercheck: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M13 7a4 4 0 1 0-8 0 4 4 0 1 0 8 0M16 11l2 2 4-4', cal: this.ICONS.availability, folder: this.ICONS.needs, target: this.ICONS.match, building: 'M3 21h18M6 21V4h9v17M9 8h3M9 12h3M18 21V9h-3', clock: 'M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20zM12 7v5l3 2', doc: this.ICONS.documents, shield: this.ICONS.licenses, tri: this.ICONS.risk };
-    const kc = (label, value, sub, delta, tone, icon, go) => ({ label, value, sub, delta, deltaBs: this.tone(tone === 'bad' ? 'bad' : tone === 'warn' ? 'warn' : 'ok'), icon3d: this.icon3d(tone), icon: kIcon[icon], go });
+    const kc = (label, value, sub, delta, tone, icon, go) => ({ label, value: Math.round(value * cp), sub, delta, deltaBs: this.tone(tone === 'bad' ? 'bad' : tone === 'warn' ? 'warn' : 'ok'), icon3d: this.icon3d(tone), icon: kIcon[icon], go });
     base.kpis = [
       kc('Verified active qualifiers', Q.filter(q => ['Verified', 'Active'].includes(q.status)).length, 'of ' + Q.length + ' on roster', '12%', 'ok', 'usercheck', this.go('qualifiers')),
       kc('Available now', availNow.length, 'ready for placement', '8%', 'info', 'cal', this.go('availability')),
@@ -1746,9 +2418,9 @@ class Component extends DCLogic {
     const pctOf = pts => { const a = pts.split('/').map(Number); return a[1] ? a[0] / a[1] : 0; };
     const cats = [['License health', 'License compliance', 'ok'], ['Documents', 'Document readiness', 'hr'], ['Availability', 'Availability', 'hr'], ['Verification', 'Background & credit', 'ok'], ['Review record', 'Placement readiness', 'ok']];
     base.readiness = {
-      avg: Math.round(Q.reduce((s, q) => s + q.readiness.score, 0) / Q.length),
+      avg: Q.length ? Math.round((Q.reduce((s, q) => s + ((q.readiness && q.readiness.score) || 0), 0) / Q.length) * cp) : 0,
       ringBs: 'background:conic-gradient(from 200deg,#1aa6a6,#355a92 36%,#7c4dd0 66%,#e0559f 90%,#1aa6a6)',
-      bars: cats.map(([key, label, tone]) => { const vals = Q.map(q => { const p = q.readiness.parts.find(x => x.k === key); return p ? pctOf(p.pts) : null; }).filter(v => v != null); const avg = Math.round(vals.reduce((s, v) => s + v, 0) / vals.length * 100); return { label, scoreTxt: avg + ' / 100', barBs: 'width:' + avg + '%;' + this.hue(tone) }; })
+      bars: cats.map(([key, label, tone]) => { const vals = Q.map(q => { const p = q.readiness && q.readiness.parts && q.readiness.parts.find(x => x.k === key); return p ? pctOf(p.pts) : null; }).filter(v => v != null); const avg = vals.length ? Math.round(vals.reduce((s, v) => s + v, 0) / vals.length * 100) : 0; return { label, scoreTxt: avg + ' / 100', barBs: 'width:' + avg + '%;' + this.hue(tone) }; })
     };
     // priority actions
     const prio = [];
@@ -1818,7 +2490,7 @@ class Component extends DCLogic {
       return { state: l.state, num: l.licenseNumber, qname: this.qById(l.qualifierId).fullName, expTxt: l.expirationDate ? (d < 0 ? 'expired ' + this.fds(l.expirationDate) : 'expires ' + this.fds(l.expirationDate)) : 'no expiration on file', healthT: l.licenseHealthStatus, healthBs: this.tone(this.LH[l.licenseHealthStatus]) };
     });
     // reverify
-    base.reverify = Q.filter(q => { const d = this.dn(q.nextReviewDue); return d != null && d <= 30; }).sort((a, b) => this.dn(a.nextReviewDue) - this.dn(b.nextReviewDue)).map(q => {
+    base.reverify = Q.filter(q => { const d = this.dn(q.nextReviewDue); return d != null && d <= 30; }).sort((a, b) => this.dn(a.nextReviewDue) - this.dn(b.nextReviewDue)).slice(0, 8).map(q => {
       const d = this.dn(q.nextReviewDue);
       return { name: q.fullName, initials: this.initials(q.fullName), avBs: this.avBs(q.id), dueTxt: d < 0 ? 'OVERDUE' : this.fds(q.nextReviewDue), chipBs: this.tone(d < 0 ? 'bad' : d <= 7 ? 'warn' : 'neutral'), go: this.openQ(q.id) };
     });
@@ -1861,10 +2533,16 @@ class Component extends DCLogic {
         healthT: wh || 'No licenses', healthBs: this.tone(wh ? this.LH[wh] : 'neutral'),
         availT: a ? a.availabilityStatus : '—', availBs: this.tone(a ? this.AVS[a.availabilityStatus] : 'neutral'),
         ready: sc, readyBarBs: 'width:' + sc + '%;background:' + (sc >= 80 ? 'var(--success-500)' : sc >= 55 ? 'var(--warning-500)' : 'var(--danger-500)'),
+        verified: q.verificationStatus === 'Verified' && q.backgroundCheckStatus === 'Clear' && q.creditCheckStatus === 'Clear',
+        hasTier: sc >= 80, tierT: sc >= 90 ? 'ELITE' : 'READY', tierBs: sc >= 90 ? 'background:linear-gradient(135deg,#f0c541,#e8a33d);color:#3a2c00' : 'background:linear-gradient(135deg,#34d17e,#1f9d55);color:#ffffff',
+        streakN: RV.filter(v => v.qualifierId === q.id && v.reliabilityRating === 5).length, hasStreak: RV.filter(v => v.qualifierId === q.id && v.reliabilityRating === 5).length >= 1,
         owner: q.internalOwner.split(' ')[0] + ' ' + q.internalOwner.split(' ')[1][0] + '.', open: this.openQ(q.id)
       };
     });
-    base.qRows = qRows; base.qCountTxt = qRows.length + ' of ' + Q.length + ' qualifiers';
+    const qp = this.pager(qRows.length, S.qPage, +S.qPer);
+    base.qPg = Object.assign({}, qp, this.pagerNav(qp, 'qPage'));
+    base.qRows = qRows.slice(qp.start, qp.end);
+    base.qCountTxt = qRows.length.toLocaleString('en-US') + ' of ' + Q.length.toLocaleString('en-US') + ' qualifiers';
     // ===== qualifier detail =====
     const dqSrc = this.qById(S.selQ);
     base.hasDQ = !!dqSrc;
@@ -1936,7 +2614,10 @@ class Component extends DCLogic {
       { label: 'Missing verification', value: L.filter(l => l.licenseHealthStatus === 'Missing Verification' || l.licenseHealthStatus === 'Human Review Required').length, dotBs: this.dot('hr') },
       { label: 'Verified current', value: L.filter(l => l.licenseHealthStatus === 'Verified Current').length, dotBs: this.dot('ok') }
     ];
-    base.lRows = L.filter(l => {
+    base.lStates = [...new Set(L.map(l => l.state))].sort().map(t => ({ t }));
+    base.lTrades = [...new Set(L.map(l => l.tradeClassification))].sort().map(t => ({ t }));
+    const lq = S.fLQ.trim().toLowerCase();
+    const lHit = L.filter(l => {
       if (S.fLState !== 'all' && l.state !== S.fLState) return false;
       if (S.fLTrade !== 'all' && l.tradeClassification !== S.fLTrade) return false;
       if (S.fLHealth !== 'all' && l.licenseHealthStatus !== S.fLHealth) return false;
@@ -1945,9 +2626,76 @@ class Component extends DCLogic {
       if (S.fLExp === '30' && !(d != null && d >= 0 && d <= 30)) return false;
       if (S.fLExp === '60' && !(d != null && d >= 0 && d <= 60)) return false;
       if (S.fLExp === '90' && !(d != null && d >= 0 && d <= 90)) return false;
+      if (lq) { const q = this.qById(l.qualifierId); const hay = (l.licenseNumber + ' ' + l.state + ' ' + l.licenseType + ' ' + l.tradeClassification + ' ' + l.id + ' ' + (q ? q.fullName : '')).toLowerCase(); if (!hay.includes(lq)) return false; }
       return true;
-    }).map(l => this.licVM(l));
-    base.lCountTxt = base.lRows.length + ' of ' + L.length + ' licenses';
+    });
+    const HR = { 'Do Not Place Pending Review': 0, 'Expired': 1, 'Human Review Required': 2, 'Missing Verification': 3, 'Expiring Soon': 4, 'Renewal Window': 5, 'Verified Current': 6 };
+    const nn = v => v == null ? 1e6 : v;
+    const sorters = {
+      risk: (a, b) => HR[a.licenseHealthStatus] - HR[b.licenseHealthStatus] || nn(this.dn(a.expirationDate)) - nn(this.dn(b.expirationDate)),
+      expiring: (a, b) => nn(this.dn(a.expirationDate)) - nn(this.dn(b.expirationDate)),
+      verified: (a, b) => nn(-this.dn(a.lastVerifiedDate)) - nn(-this.dn(b.lastVerifiedDate)),
+      state: (a, b) => a.state.localeCompare(b.state) || a.licenseNumber.localeCompare(b.licenseNumber),
+      number: (a, b) => a.licenseNumber.localeCompare(b.licenseNumber)
+    };
+    lHit.sort(sorters[S.fLSort] || sorters.risk);
+    const lp = this.pager(lHit.length, S.lPage, +S.lPer);
+    base.lPg = Object.assign({}, lp, this.pagerNav(lp, 'lPage'));
+    base.lRows = lHit.slice(lp.start, lp.end).map(l => this.licVM(l));
+    base.lCountTxt = lHit.length.toLocaleString('en-US') + ' of ' + L.length.toLocaleString('en-US') + ' license records';
+    base.fLQ = S.fLQ; base.setFLQ = this.setP('fLQ', 'lPage');
+    base.fLSort = S.fLSort; base.setFLSort = this.setP('fLSort', 'lPage');
+    base.lPer = String(S.lPer); base.setLPer = this.setP('lPer', 'lPage');
+    // ===== license detail =====
+    const dlS = this.lById(S.selL) || L[0];
+    if (dlS) {
+      const q = this.qById(dlS.qualifierId);
+      const vm = this.licVM(dlS);
+      const dExp = this.dn(dlS.expirationDate), dVer = this.dn(dlS.lastVerifiedDate), dIss = this.dn(dlS.issueDate);
+      const since = dVer == null ? null : -dVer;
+      const fresh = since == null ? 0 : Math.max(0, Math.min(100, Math.round((1 - since / 180) * 100)));
+      const term = dExp != null && dIss != null ? dExp - dIss : null;
+      const elapsed = term ? Math.max(0, Math.min(100, Math.round((-dIss) / term * 100))) : 100;
+      const docs = (this.idx().dl[dlS.id] || []).map(d => this.docVM(d));
+      const pls = P.filter(p => p.qualifierId === dlS.qualifierId && ['Active', 'Ending Soon', 'At Risk', 'Pending Activation'].includes(p.placementStatus));
+      const a = this.avOf(dlS.qualifierId);
+      base.dl = Object.assign({}, vm, {
+        headline: dlS.state + ' · ' + dlS.licenseType,
+        issued: this.fd(dlS.issueDate),
+        expiresFull: dlS.expirationDate ? this.fd(dlS.expirationDate) : 'No expiration on file',
+        expDays: dExp == null ? 'Not applicable' : dExp < 0 ? Math.abs(dExp) + ' days past expiration' : dExp + ' days remaining',
+        expTone: dExp == null ? 'color:var(--text-muted)' : dExp < 0 ? 'color:var(--danger-600);font-weight:600' : dExp <= 60 ? 'color:var(--warning-600);font-weight:600' : 'color:var(--text-body)',
+        termBarBs: 'width:' + elapsed + '%;background:' + (dExp != null && dExp < 0 ? 'var(--danger-500)' : dExp != null && dExp <= 60 ? 'var(--warning-500)' : 'var(--teal-500)'),
+        termTxt: term ? Math.round(term / 365 * 10) / 10 + '-year term · ' + elapsed + '% elapsed' : 'Term not established',
+        sinceTxt: since == null ? 'Never verified against the state source' : since + ' days since last check',
+        freshBarBs: 'width:' + Math.max(3, fresh) + '%;background:' + (fresh >= 50 ? 'var(--success-500)' : fresh > 0 ? 'var(--warning-500)' : 'var(--danger-500)'),
+        freshTxt: since == null ? 'NO VERIFICATION ON RECORD' : fresh + '% OF THE 180-DAY CYCLE REMAINING',
+        nextVerify: dVer == null ? 'Overdue — schedule immediately' : this.fd(new Date(new Date(dlS.lastVerifiedDate + 'T00:00:00').getTime() + 180 * 86400000).toISOString().slice(0, 10)),
+        qid: q.id, qname: q.fullName, qinitials: this.initials(q.fullName), qavBs: this.avBs(q.id),
+        qstatusT: q.status, qstatusBs: this.tone(this.QS[q.status]), qverifT: q.verificationStatus, qverifBs: this.tone(this.VS[q.verificationStatus]),
+        qloc: q.city + ', ' + q.stateOfResidence, qowner: q.internalOwner, qready: q.readiness.score,
+        qreadyBarBs: 'width:' + q.readiness.score + '%;background:' + (q.readiness.score >= 80 ? 'var(--success-500)' : q.readiness.score >= 55 ? 'var(--warning-500)' : 'var(--danger-500)'),
+        qavailT: a ? a.availabilityStatus : 'No availability record', qavailBs: this.tone(a ? this.AVS[a.availabilityStatus] : 'neutral'),
+        otherLics: this.licsOf(q.id).filter(x => x.id !== dlS.id).map(x => ({ id: x.id, num: x.licenseNumber, state: x.state, trade: x.tradeClassification, healthT: x.licenseHealthStatus, healthBs: this.tone(this.LH[x.licenseHealthStatus]), go: this.openL(x.id) })),
+        hasOther: this.licsOf(q.id).length > 1, noOther: this.licsOf(q.id).length <= 1, otherCount: this.licsOf(q.id).length - 1,
+        docs, hasDocs: docs.length > 0, noDocs: docs.length === 0,
+        pls: pls.map(p => ({ company: p.companyName, statusT: p.placementStatus, statusBs: this.tone(this.PSS[p.placementStatus]), meta: this.fd(p.startDate) + ' → ' + this.fd(p.expectedEndDate) + ' · ' + p.id })),
+        hasPls: pls.length > 0, noPls: pls.length === 0,
+        blocked: !dlS.canBeUsedForPlacement,
+        blockReason: dlS.restrictions || (dlS.licenseHealthStatus === 'Missing Verification' ? 'Verification is stale — this license cannot back a placement until it is re-checked against the state source.' : dlS.licenseHealthStatus === 'Expired' ? 'Expired — reinstatement required before this license can be used.' : 'Held pending human review.'),
+        steps: [
+          { k: 'Issued', v: this.fd(dlS.issueDate), on: true },
+          { k: 'Last verified', v: dlS.lastVerifiedDate ? this.fd(dlS.lastVerifiedDate) : 'Never', on: !!dlS.lastVerifiedDate },
+          { k: 'Renewal window opens', v: dExp == null ? 'Not applicable' : this.fd(new Date(new Date(dlS.expirationDate + 'T00:00:00').getTime() - 120 * 86400000).toISOString().slice(0, 10)), on: dExp != null && dExp <= 120 },
+          { k: 'Expires', v: dlS.expirationDate ? this.fd(dlS.expirationDate) : 'No expiration', on: dExp != null && dExp < 0 }
+        ].map(s => ({ kCaps: s.k.toUpperCase(), v: s.v, dotBs: 'background:' + (s.on ? 'var(--teal-500)' : 'var(--gray-300)') })),
+        goQual: this.openQ(q.id),
+        actVerify: () => this.say('Re-verification queued against ' + dlS.verificationSource + ' for ' + dlS.licenseNumber + '. Rose OS re-checks the state source and a human confirms before the health status changes.'),
+        actPortal: () => this.say('Opening ' + dlS.verificationSource + ' — external state lookups are stubbed in this prototype.'),
+        actFlag: () => this.say('Flagged ' + dlS.licenseNumber + ' for compliance review. In production this opens a risk record assigned to ' + q.internalOwner + '.')
+      });
+    }
+    base.backL = this.go('licenses');
     // ===== availability page =====
     const avRank = { 'Available Now': 0, 'Available Soon': 1, 'Limited Availability': 2, 'Not Available': 3, 'Paused': 4 };
     base.aCards = AVL.filter(a => {
@@ -2010,11 +2758,12 @@ class Component extends DCLogic {
         notApproved: sn.adminReviewStatus !== 'Approved to Match'
       };
       const mm = M.filter(m => m.placementNeedId === sn.id);
-      const mkM = m => {
+      const mkM = (m, i) => {
         const q = this.qById(m.qualifierId), l = m.qualifierLicenseId ? this.lById(m.qualifierLicenseId) : null;
         const actable = ['Pending', 'Needs More Info', 'Hold'].includes(m.adminApprovalStatus);
         return {
           id: m.id, qname: q.fullName, initials: this.initials(q.fullName), avBs: this.avBs(q.id), qgo: this.openQ(q.id),
+          delay: Math.min(i || 0, 6) * 0.09, fitBarBg: m.fitScore >= 80 ? 'linear-gradient(90deg,var(--success-500),var(--teal-500))' : m.fitScore >= 55 ? 'var(--warning-500)' : 'var(--danger-500)',
           lic: l ? l.state + ' ' + l.licenseNumber + ' · ' + l.licenseType : 'No usable license on file',
           statusT: m.matchStatus, statusBs: this.tone(this.MSS[m.matchStatus]), fit: m.fitScore, ringBs: this.ring(m.fitScore),
           factors: (m.factors || []).map(f => ({ k: f.k, v: f.v, dotBs: this.dot(f.tone) })),
@@ -2025,8 +2774,8 @@ class Component extends DCLogic {
           approve: this.approveMatch(m.id, 'Approved'), hold: this.approveMatch(m.id, 'Hold'), reject: this.approveMatch(m.id, 'Rejected')
         };
       };
-      base.recM = mm.filter(m => m.matchStatus !== 'Not Recommended').map(mkM);
-      base.notM = mm.filter(m => m.matchStatus === 'Not Recommended').map(mkM);
+      base.recM = mm.filter(m => m.matchStatus !== 'Not Recommended').map((m, i) => mkM(m, i));
+      base.notM = mm.filter(m => m.matchStatus === 'Not Recommended').map((m, i) => mkM(m, i));
       base.hasRec = base.recM.length > 0; base.hasNot = base.notM.length > 0; base.noMatches = mm.length === 0;
     }
     // ===== placements page =====
@@ -2077,8 +2826,11 @@ class Component extends DCLogic {
       if (S.fDStatus !== 'all' && d.documentStatus !== S.fDStatus) return false;
       if (S.fDType !== 'all' && d.documentType !== S.fDType) return false;
       return true;
-    }).map(d => this.docVM(d));
-    base.dCountTxt = base.dRows.length + ' of ' + D.length + ' documents';
+    });
+    const dp = this.pager(base.dRows.length, S.dPage, +S.dPer);
+    base.dPg = Object.assign({}, dp, this.pagerNav(dp, 'dPage'));
+    base.dCountTxt = base.dRows.length.toLocaleString('en-US') + ' of ' + D.length.toLocaleString('en-US') + ' documents';
+    base.dRows = base.dRows.slice(dp.start, dp.end).map(d => this.docVM(d));
     // ===== risk page =====
     base.rRows = R.filter(r => {
       if (S.fRLevel !== 'all' && r.riskLevel !== S.fRLevel) return false;
@@ -2115,6 +2867,45 @@ class Component extends DCLogic {
     P.forEach(p => { engage[p.qualifierId] = engage[p.qualifierId] || []; engage[p.qualifierId].push(p.companyName + ' (active)'); });
     M.filter(m => ['Approved', 'Pending'].includes(m.adminApprovalStatus)).forEach(m => { const n = this.nById(m.placementNeedId); engage[m.qualifierId] = engage[m.qualifierId] || []; engage[m.qualifierId].push(n.companyName + ' (' + m.adminApprovalStatus.toLowerCase() + ')'); });
     base.repRepeat = Object.entries(engage).sort((x, y) => y[1].length - x[1].length).slice(0, 5).map(([qid, list]) => ({ name: this.qById(qid).fullName, n: list.length + (list.length === 1 ? ' engagement' : ' engagements'), note: list.join(' · '), go: this.openQ(qid) }));
+    // ===== coverage map =====
+    const covStates = new Set(L.map(l => l.state));
+    const covCities = new Set(Q.map(q => q.city).filter(c => db.CITIES && db.CITIES[c]));
+    const gapsArr = db.COVERAGE_GAPS || [];
+    base.covGapCount = gapsArr.length;
+    const covMk = (label, value, sub, color) => ({ label, value: Math.round(value * cp), sub, color });
+    base.covKpis = [
+      covMk('STATES COVERED', covStates.size, 'of 50 states', 'var(--teal-600)'),
+      covMk('AVAILABLE NOW', availNow.length, 'ready to place', 'var(--success-600)'),
+      covMk('CITIES ON MAP', covCities.size, 'with licensed bench', 'var(--navy-600)'),
+      covMk('COVERAGE GAPS', gapsArr.length, 'demand · no local bench', 'var(--danger-500)')
+    ];
+    base.covGaps = gapsArr.map(g => ({ state: g.state, city: g.city, reason: g.reason, levelT: g.severity === 'high' ? 'HIGH' : 'MEDIUM', levelBs: this.tone(g.severity === 'high' ? 'bad' : 'warn'), dotBs: g.severity === 'high' ? 'background:var(--danger-500)' : 'background:var(--warning-500)' }));
+    const covRank = {}; L.forEach(l => { covRank[l.state] = (covRank[l.state] || 0) + 1; });
+    const covMax = Math.max(1, ...Object.values(covRank));
+    base.covTop = Object.entries(covRank).sort((a, b) => b[1] - a[1]).slice(0, 6).map(([st, n]) => ({ st, n, w: 'width:' + Math.round(n / covMax * 100) + '%;background:linear-gradient(90deg,var(--teal-500),var(--teal-600))' }));
+    // ===== gamification: staff leaderboard + milestones =====
+    const staffPts = {}; const addP = (name, n) => { if (!name) return; staffPts[name] = (staffPts[name] || 0) + n; };
+    Q.forEach(q => addP(q.internalOwner, 3));
+    N.forEach(n => addP(n.placementOwner, 2));
+    RV.forEach(v => addP(v.reviewedBy, 4));
+    M.forEach(m => { if (m.reviewedBy) addP(m.reviewedBy, 5); });
+    P.forEach(p => { const q = this.qById(p.qualifierId); if (q) addP(q.internalOwner, 3); });
+    const staffRole = {}; db.STAFF.forEach(s => staffRole[s.name] = s.role);
+    const lbMax = Math.max(1, ...Object.values(staffPts));
+    const medals = ['linear-gradient(135deg,#f0c541,#e0a91b)', 'linear-gradient(135deg,#d7dee6,#aeb9c4)', 'linear-gradient(135deg,#d98f52,#b8703a)'];
+    base.leaderboard = Object.entries(staffPts).sort((a, b) => b[1] - a[1]).map(([name, pts], i) => ({
+      rank: i + 1, name, role: staffRole[name] || 'Staff', pts: Math.round(pts * cp), initials: this.initials(name), avBs: this.avBs('' + (i * 7 + 5)),
+      w: 'width:' + Math.round(pts / lbMax * 100) + '%;background:linear-gradient(90deg,var(--teal-500),var(--teal-600))',
+      medalBs: i < 3 ? ('background:' + medals[i] + ';color:#2a2100') : 'background:var(--surface-active);color:var(--text-muted)', top: i === 0
+    }));
+    const verifiedCount = Q.filter(q => q.verificationStatus === 'Verified').length;
+    const eliteCount = Q.filter(q => q.readiness.score >= 90).length;
+    const mIcon = { trophy: 'M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 4H4v2a3 3 0 0 0 3 3M17 4h3v2a3 3 0 0 1-3 3', star: 'M12 2l2.9 6.3 6.9.7-5.2 4.6 1.5 6.8L12 17.3 5.9 20.4l1.5-6.8L2.2 9l6.9-.7z', shield: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10zM9 12l2 2 4-4' };
+    base.milestones = [
+      { d: mIcon.trophy, label: livePl.length + ' active placements', sub: 'under management', color: 'var(--teal-600)' },
+      { d: mIcon.star, label: eliteCount + ' qualifiers at Elite', sub: 'readiness 90+', color: 'var(--warning-500)' },
+      { d: mIcon.shield, label: Math.round(verifiedCount / Q.length * 100) + '% roster verified', sub: verifiedCount + ' of ' + Q.length + ' cleared', color: 'var(--success-600)' }
+    ];
     return base;
   }
   licVM(l) {
@@ -2122,7 +2913,7 @@ class Component extends DCLogic {
     const d = this.dn(l.expirationDate);
     const chip = this.expChip(d);
     return {
-      id: l.id, num: l.licenseNumber, state: l.state, qname: q.fullName, qgo: this.openQ(q.id),
+      id: l.id, num: l.licenseNumber, state: l.state, qname: q.fullName, qgo: this.openQ(q.id), open: this.openL(l.id),
       type: l.licenseType, trade: l.tradeClassification,
       statusT: l.licenseStatus, statusBs: this.tone(this.LS[l.licenseStatus]),
       healthT: l.licenseHealthStatus, healthBs: this.tone(this.LH[l.licenseHealthStatus]),

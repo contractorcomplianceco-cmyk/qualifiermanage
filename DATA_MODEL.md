@@ -1,31 +1,32 @@
 # QualifierManageOS — Data Model & Connection Points
 
-The complete data contract for wiring QualifierManageOS to a real backend and to the rest of the
-CCA ecosystem. Everything the UI reads comes from `data.js`, which is **shaped to map 1:1 onto a
-Postgres/Supabase schema**. Swap the `import('./data.js')` seam for real queries returning the same
-shape and the UI needs no other changes.
+The complete data contract for QualifierManageOS and the rest of the CCA ecosystem. The live UI
+reads via **`qmos-api.js` → `hydrate()`**, which returns the same collection shape originally
+defined by the seed generators (`data.js` / `data.base.js` / `data.bulk.js`). Those seed files
+remain the reference for migrations `0009`/`0012`; they are **not** the runtime source.
 
 All IDs are string keys with a per-entity prefix. All dates are `YYYY-MM-DD` strings. Day-countdowns
-(expiry, "due in N days") are computed relative to the exported **`TODAY`** constant — replace with
-`now()` when live.
+(expiry, "due in N days") use hydrate **`TODAY`** (ISO date from the client at load).
 
 ---
 
-## Entities (11 exports)
+## Entities (hydrate exports)
 
-| Export | Prefix | Rows | Purpose |
+| Export | Prefix | Live scale (post-0012) | Purpose |
 |---|---|---|---|
-| `QUALIFIERS` | `Q-` | 10 | The people CCA can place. Identity, screening status, comp, readiness. |
-| `LICENSES` | `L-` | 15 | Licenses held by qualifiers; verification recency & placement usability. |
-| `AVAILABILITY` | `A-` | 10 | 1:1 with qualifier — capacity, preferred states/trades, work mode. |
-| `DOCUMENTS` | `D-` | 12 | Doc records (ID, license copy, insurance, agreement…) + status. |
-| `NEEDS` | `N-` | 6 | Company demand — a role a company needs a qualifier for. |
-| `MATCHES` | `M-` | 8 | Candidate ↔ need pairings with fit score & **human approval** state. |
-| `PLACEMENTS` | `P-` | 4 | Active/ongoing engagements + the CCA fee split. |
-| `REVIEWS` | `V-` | 5 | Performance reviews of qualifiers on placements. |
-| `RISKS` | `R-` | 8 | Risk register across qualifiers, needs, and placements. |
-| `STAFF` | — | 5 | Internal user directory + role (the auth/role source). |
-| `TODAY` | — | — | Reference "now" (`'2026-07-24'`) for all relative date math. |
+| `QUALIFIERS` | `Q-` | 289 | The people CCA can place. Identity, screening status, comp, readiness. |
+| `LICENSES` | `L-` | 1039 | Licenses held by qualifiers; verification recency & placement usability. |
+| `AVAILABILITY` | `A-` | 289 | 1:1 with qualifier — capacity, preferred states/trades, work mode. |
+| `DOCUMENTS` | `D-` | 234 | Doc records (ID, license copy, insurance, agreement…) + status. |
+| `NEEDS` | `N-` | 12 | Company demand — a role a company needs a qualifier for. |
+| `MATCHES` | `M-` | 11 | Candidate ↔ need pairings with fit score & **human approval** state. |
+| `PLACEMENTS` | `P-` | 10 | Active/ongoing engagements + the CCA fee split. |
+| `REVIEWS` | `V-` | 10 | Performance reviews of qualifiers on placements. |
+| `RISKS` | `R-` | 14 | Risk register across qualifiers, needs, and placements. |
+| `STAFF` | — | 9 | Internal directory + role (demo `@example.com` + real Auth allowlist). |
+| `CITIES` | — | 26 | City → `[lng, lat]` map for Coverage Map pins. |
+| `COVERAGE_GAPS` | — | 5 | Regional gap markers (state/city/severity/needId). |
+| `TODAY` | — | — | Reference "now" (ISO date) for relative date math. |
 
 ---
 
@@ -162,16 +163,62 @@ with the AuditEngine / ecosystem review — stated as recommendations, not assum
 | RISKS | Risk register — **align with AuditEngine risk model** | `riskType` / `riskLevel` should reconcile with AuditEngine's taxonomy. **(confirm)** whether these are QMOS-native or mirrored from AuditEngine. |
 | STAFF / roles | Auth (Supabase RLS / SSO) | UI role gating must be mirrored by row-level security server-side. |
 
-### Key cross-system question for the AuditEngine review
+### Cross-system ID mapping (decided — 2026-07-29)
+
 DocumentCollection is described as *keyed on the universal matrix identifiers* and a *read-only
-consumer of AuditEngine*. QMOS currently uses its own `Q-`/`L-`/`N-`/… keys. **Decide how QMOS IDs
-map to (or are replaced by) the universal matrix identifiers** so QMOS, DocumentCollection, and
-AuditEngine reference the same qualifier/license/placement rows. This mapping is the single most
-important thing to settle before wiring cross-system reads/writes.
+consumer of AuditEngine*. QMOS currently uses its own `Q-`/`L-`/`N-`/… keys.
 
-### Write paths to wire (currently local state)
-- `approveMatch(id, status)` → update `MATCHES.adminApprovalStatus` + `reviewedBy` + `reviewedDate` (audit-logged).
-- `setRisk(id, status)` → update `RISKS.riskStatus` (audit-logged).
+**Decision (Option A): QMOS keeps its friendly IDs as stable primary keys. AuditEngine / universal
+matrix identifiers live in nullable `auditengine_id` columns on the synced tables.** Concretely:
 
-Both must write to an **append-only audit trail** — the UI already states every decision is logged
-and requires human review before external use.
+| QMOS table | PK (unchanged) | New nullable column | Populated when |
+|---|---|---|---|
+| `qualifiers` | `id` = `Q-###` | `auditengine_id` (uuid, unique, nullable) | Row is first synced to AuditEngine |
+| `licenses` | `id` = `L-###` | `auditengine_id` (uuid, unique, nullable) | Row is first synced to AuditEngine |
+| `placements` | `id` = `P-###` | `auditengine_id` (uuid, unique, nullable) | Row is first synced to AuditEngine |
+| `needs` | `id` = `N-###` | `auditengine_id` (uuid, unique, nullable) | Row is first synced to AuditEngine |
+| `risks` | `id` = `R-###` | `auditengine_id` (uuid, unique, nullable) | If risk mirrors an AuditEngine risk |
+
+**Why this shape.**
+
+1. **QMOS keys are already threaded through every screen** — URLs, tooltips, exports, admin notes,
+   internal reports. Swapping them out for UUIDs would break the UI's IA and every staff shortcut.
+2. **QMOS is the downstream consumer.** AuditEngine and DocumentCollection are the systems of
+   record for compliance events; QMOS mirrors what it needs. A nullable `auditengine_id` on the
+   downstream table is the standard shape for that relationship.
+3. **One-to-one until proven otherwise.** Every qualifier in QMOS corresponds to at most one
+   AuditEngine contractor record. Same for licenses, placements, needs. If we ever hit a
+   many-to-many case (e.g., a QMOS placement spanning two AuditEngine engagements), we add a
+   mapping table then — not now.
+4. **Reversible.** Nullable columns cost nothing while empty. If we later decide to adopt the
+   universal matrix ID as PK, the migration is: backfill `auditengine_id`, then swap.
+
+**Rules.**
+
+- Every sync-eligible write to `qualifiers` / `licenses` / `placements` / `needs` publishes a
+  sync event; the sync worker attaches `auditengine_id` on first success and never mutates it
+  afterward.
+- QMOS never accepts an AuditEngine ID as a URL parameter or lookup key from the UI. Staff work
+  in QMOS keys; the mapping is server-side.
+- Read paths from AuditEngine / DocumentCollection resolve to QMOS keys via the `auditengine_id`
+  index before hydrating the UI.
+- `auditengine_id` is nullable so QMOS records can exist before (or without) an AuditEngine
+  counterpart — e.g., intake-stage qualifiers.
+- Column name is **`auditengine_id` everywhere** (schema, RPCs, docs). Do not introduce a parallel
+  `external_id` alias without Rose yes. Staff-only today; rename/alias before any client surface.
+
+**Deferred to a follow-up decision** (not blocking current staff preview):
+
+- Whether `matches` needs an `auditengine_id` — depends on whether AuditEngine tracks candidate
+  proposals or only approved placements.
+- Whether `documents` mirrors DocumentCollection IDs directly or resolves via the qualifier's
+  `auditengine_id`. Current lean: resolve via qualifier, since DocumentCollection is the read-only
+  source and QMOS holds statuses only.
+
+### Write paths (live)
+
+- `approveMatch(id, status)` → RPC `qmos_approve_match` → updates `matches` + inserts `decision_audit_log`.
+- `setRisk(id, status)` → RPC `qmos_set_risk` → updates `risks` + inserts `decision_audit_log`.
+
+Both are gated by JWT `qmos_role`, fail-closed, and append-only audited. Client debounce prevents
+double-submit. Sync seams (AuditEngine / Docs Collect / Zoho) remain **OFF**.

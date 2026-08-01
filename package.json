@@ -2,7 +2,7 @@
   "name": "qualifiermanage-os",
   "version": "0.1.0",
   "private": true,
-  "description": "QualifierManageOS — CCA internal command center for managing qualified individuals across licensing, compliance, availability, matching, placements, documents, and risk. Phase-1 prototype (static HTML + ES modules) built to map 1:1 onto a Postgres/Supabase backend.",
+  "description": "QualifierManageOS — CCA internal staff command center for qualifiers across licensing, compliance, availability, matching, placements, documents, and risk. Static HTML + ES modules with live Supabase hydrate/RLS (staff preview; sync and go-live held).",
   "author": "Contractor Compliance Authority (CCA)",
   "license": "UNLICENSED",
   "type": "module",
@@ -29,6 +29,6 @@
     "compliance",
     "licensing",
     "government-contracting",
-    "prototype"
+    "staff-preview"
   ]
 }
