@@ -1,11 +1,11 @@
 # QualifierManageOS — Read/write API v1 proposal
 
-**Status:** PROPOSAL ONLY — not applied / not wired in the UI  
+**Status:** APPLIED + WIRED — journal `0007`/`0008`; UI uses `qmos-api.js` hydrate + RPCs  
 **Audience:** `[INTERNAL ONLY]`  
-**Sequencing:** shape yes → separate apply/wire yes (same as RLS / allowlist)  
+**Sequencing:** shape yes → separate apply/wire yes (both received; applied together per Rose)  
 **Depends on:** live `0001`–`0006` (schema, RLS, allowlist JWT `qmos_role`)  
 **Tip baseline when drafted:** `fb9a0bbd44107e22fde65cbea2dbeba337058e8f`  
-**Companion SQL (writes + audit RPCs):** `migrations/0007_api_write_rpcs_v1.sql` (PROPOSAL)
+**Companion SQL (writes + audit RPCs):** `migrations/0007_api_write_rpcs_v1.sql` (applied)
 
 ---
 

@@ -1,8 +1,8 @@
 # QualifierManageOS — Staff allowlist auth v1 proposal (0005)
 
-**Status:** PROPOSAL ONLY — not applied  
+**Status:** APPLIED — journal `0005_staff_allowlist_auth_v1` (+ `0006` FORCE RLS hook fix)  
 **Audience:** `[INTERNAL ONLY]`  
-**Sequencing:** shape yes → separate apply yes (same as RLS)  
+**Sequencing:** shape yes → separate apply yes (both received)  
 **Depends on:** live `0001`–`0004` (RLS helpers already read JWT `qmos_role`)  
 **Tip baseline when drafted:** `85acdf75e35e8d96bb62deb2c41d9af5e2a0a4b8`
 
@@ -168,4 +168,4 @@ Defaulting these unless you say otherwise:
 4. Public Auth signup **off** — Y/N  
 5. First Admin bootstrap via **service_role / dashboard** — Y/N  
 
-SQL draft: `migrations/0005_staff_allowlist_auth_v1.sql` (PROPOSAL — do not apply until shape yes + apply yes).
+SQL: `migrations/0005_staff_allowlist_auth_v1.sql` (applied; see also `0006_allowlist_hook_force_rls_fix.sql`).

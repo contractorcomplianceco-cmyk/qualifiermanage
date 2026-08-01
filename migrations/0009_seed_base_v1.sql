@@ -1,5 +1,5 @@
 -- QualifierManageOS — 0009 Base seed v1
--- STATUS: PROPOSAL ONLY — do not apply until Rose yes on shape, then separate yes to apply.
+-- STATUS: APPLIED (Rose shape+apply yes; journal 0009_seed_base_v1).
 -- Source: data.base.js (Phase-1 reviewed). NO data.bulk.js.
 -- Companion: migrations/SEED_V1_PROPOSAL.md
 -- Tip baseline when drafted: 135b19a1e9e8585e0f667be968428886978db3d5

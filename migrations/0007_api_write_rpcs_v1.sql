@@ -1,5 +1,5 @@
 -- QualifierManageOS — 0007 API write RPCs v1
--- STATUS: PROPOSAL ONLY — do not apply until Rose yes on API shape, then separate yes to apply.
+-- STATUS: APPLIED + wired in UI (Rose shape+wire yes; journal 0007_api_write_rpcs_v1). Follow-on: 0008.
 -- Companion: migrations/API_V1_PROPOSAL.md
 -- Tip baseline when drafted: fb9a0bbd44107e22fde65cbea2dbeba337058e8f
 --

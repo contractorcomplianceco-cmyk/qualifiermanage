@@ -1,5 +1,5 @@
 -- QualifierManageOS — 0005 Staff allowlist auth v1
--- STATUS: PROPOSAL ONLY — do not apply until Rose yes on shape, then separate yes to apply.
+-- STATUS: APPLIED (Rose shape+apply yes; journal 0005_staff_allowlist_auth_v1). Follow-on: 0006.
 -- Tip baseline when drafted: 85acdf75e35e8d96bb62deb2c41d9af5e2a0a4b8
 -- Companion: migrations/AUTH_ALLOWLIST_V1_PROPOSAL.md
 --

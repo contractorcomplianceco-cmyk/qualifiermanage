@@ -1,3 +1,4 @@
+# OS / editor
 .DS_Store
 .thumbnail
 Thumbs.db
@@ -5,4 +6,13 @@ Thumbs.db
 *.swo
 .idea/
 .vscode/
+
+# Dependencies
 node_modules/
+
+# Local secrets / env (never commit)
+.env
+.env.local
+.env.*.local
+.env.*
+!.env.example

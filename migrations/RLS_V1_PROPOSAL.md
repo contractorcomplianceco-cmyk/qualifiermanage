@@ -1,8 +1,9 @@
 # QualifierManageOS — RLS v1 proposal (0002)
 
-**Status:** PROPOSAL ONLY — not applied  
+**Status:** APPLIED — journal `0002_qmos_rls_v1` (+ `0003` grant hygiene, `0004` P0 anon EXECUTE)  
 **Audience:** `[INTERNAL ONLY]`  
-**Revision:** gap-fix after Rose review (admin columns + reviews write + audit INSERT = B)
+**Revision:** gap-fix after Rose review (admin columns + reviews write + audit INSERT = B)  
+**Later change (0007):** audit INSERT widened to `qmos_can_approve() OR qmos_can_edit()` so Placement Coordinator / Fulfillment can complete `set_risk` with an audit row.
 
 ## Fixes vs prior draft
 
@@ -10,7 +11,7 @@
 |---|---|
 | Sales Viewer could `SELECT` `qualifiers` / `risks` and read sensitive columns, bypassing views | **Column privileges:** `admin_only_notes` / `resolution_notes` are **not** GRANTed to `authenticated` on base tables (SELECT/INSERT/UPDATE). Non-admins **cannot** read those columns from the base table. Admins use **SECURITY DEFINER** RPCs + **security_invoker=false** views. |
 | `reviews` write could blind-UPDATE `admin_only` rows | Write policy now requires `(admin_only = false OR qmos_can_see_admin_fields())` on USING **and** WITH CHECK (same as SELECT). |
-| Audit INSERT too broad | INSERT policy = **`qmos_can_approve()` only** (Admin/Leadership) — matches approve_match / set_risk. |
+| Audit INSERT too broad | INSERT policy originally **`qmos_can_approve()` only**; **0007** widened to `can_approve OR can_edit` so `set_risk` audit matches editable roles. |
 
 ## Role matrix
 
@@ -35,9 +36,9 @@
 ## `decision_audit_log`
 
 - SELECT: any staff  
-- INSERT: **Admin/Leadership only** (`qmos_can_approve()`)  
+- INSERT: **`qmos_can_approve() OR qmos_can_edit()`** (as of 0007)  
 - UPDATE/DELETE: no GRANT, no policy, existing append trigger  
 
-## Still not applied
+## Live status
 
-Live journal remains `0001` only until Rose yes on shape **and** separate yes to apply.
+Applied. Journal tip is past 0002 (through `0012_seed_bulk_v1`).

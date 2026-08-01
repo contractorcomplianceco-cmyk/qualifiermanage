@@ -1,4 +1,5 @@
--- QualifierManageOS — 0002 RLS v1 (PROPOSAL — do not apply until Rose yes)
+-- QualifierManageOS — 0002 RLS v1
+-- STATUS: APPLIED (Rose shape+apply yes; journal 0002_qmos_rls_v1). Follow-ons: 0003, 0004.
 -- Tip at this revision: pushed after Rose gap-fix feedback (admin columns + reviews write + audit INSERT)
 -- Target: Supabase Postgres (cca-qualifiermanageos)
 --

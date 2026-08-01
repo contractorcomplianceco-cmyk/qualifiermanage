@@ -1978,7 +1978,6 @@ class Component extends DCLogic {
     fNStatus: 'all', fNUrg: 'all',
     fDStatus: 'all', fDType: 'all',
     fRLevel: 'all', fRStatus: 'active', fROwner: 'all',
-    matchOverrides: {}, riskOverrides: {},
     authStatus: 'loading', authMessage: '', loginEmail: '', loginPassword: '', loginBusy: false,
     sessionRole: null, sessionStaffName: null
   };
@@ -2022,8 +2021,6 @@ class Component extends DCLogic {
       sessionRole: role,
       sessionStaffName: staffName || null,
       roleOverride: null,
-      matchOverrides: {},
-      riskOverrides: {}
     }, () => this.startCount());
   }
   componentDidMount() {
@@ -2330,7 +2327,7 @@ class Component extends DCLogic {
         } catch (e) { /* ignore */ }
         this.setState({
           authStatus: 'login', authMessage: '', db: null, sessionRole: null, sessionStaffName: null,
-          loginPassword: '', loginBusy: false, matchOverrides: {}, riskOverrides: {}
+          loginPassword: '', loginBusy: false
         });
       },
       canAdmin, canEditRisk, crumb: crumbs[view] || 'DASHBOARD',
@@ -2359,7 +2356,7 @@ class Component extends DCLogic {
         mkNav('opportunities', 'Opportunities', 'opportunities', db ? this.state.db.NEEDS.filter(n => !['Closed', 'Active', 'Match Approved'].includes(n.needStatus)).length : 0, 'neutral', 'amber'),
         mkNav('match', 'Match Center', 'match', db ? this.effMatches().filter(m => m.adminApprovalStatus === 'Pending').length : 0, 'hr', 'purple'),
         mkNav('placements', 'Active Placements', 'placements', 0, null, 'violet'),
-        mkNav('coverage', 'Coverage Map', 'coverage', db ? this.state.db.COVERAGE_GAPS.length : 0, 'bad', 'teal'),
+        mkNav('coverage', 'Coverage Map', 'coverage', db ? (this.state.db.COVERAGE_GAPS || []).length : 0, 'bad', 'teal'),
         mkNav('documents', 'Documents', 'documents', db ? this.state.db.DOCUMENTS.filter(d => ['Requested', 'Needs Update', 'Expired'].includes(d.documentStatus)).length : 0, 'neutral', 'blue'),
         mkNav('risk', 'Risk Review', 'risk', db ? this.effRisks().filter(r => ['Open', 'In Review', 'Escalated'].includes(r.riskStatus)).length : 0, 'bad', 'red'),
         mkNav('reports', 'Reports', 'reports', 0, null, 'teal'),
