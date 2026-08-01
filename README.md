@@ -82,3 +82,18 @@ Client debounce prevents double-submit audit rows. Nothing auto-approves.
 | Staff preview | YES |
 | Client / partner share | **NO** |
 | Public / DNS go-live | **NO** |
+
+## Internal deploy (staff preview)
+
+Target: `https://qualifiers.cagteam.net` · nginx basic-auth · `[INTERNAL ONLY]`
+
+From a machine that already has SSH access to the host (this cloud agent’s IP is reset by the host firewall):
+
+```bash
+export QMOS_DEPLOY_HOST=ubuntu@qualifiers.cagteam.net   # your SSH user@host
+./scripts/deploy-internal.sh 25a8ab6ee77f053b582a1ddbed1e695cb415ac98
+```
+
+Confirm: `curl -u 'BASICUSER:BASICPASS' https://qualifiers.cagteam.net/DEPLOYED_SHA.txt` equals the approved SHA.
+Do **not** reapply migrations or open client/partner lanes during deploy.
+
