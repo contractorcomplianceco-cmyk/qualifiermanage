@@ -24,8 +24,8 @@
 | `0009_seed_base_v1.sql` | Base seed from `data.base.js` (applied) |
 | `0010_set_risk_return_jsonb.sql` | Hotfix: set_risk returns jsonb without resolution_notes |
 | `0011_set_risk_no_returning_star.sql` | Hotfix: set_risk RETURNING only granted columns |
-| `SEED_BULK_V1_PROPOSAL.md` | Bulk volume seed — human proposal for Rose |
-| `0012_seed_bulk_v1.sql` | Bulk seed from data.js — **proposal / not applied until Rose yes** |
+| `SEED_BULK_V1_PROPOSAL.md` | Bulk volume seed — proposal (applied 2026-08-01) |
+| `0012_seed_bulk_v1.sql` | Bulk seed from data.js — **applied** (`0012_seed_bulk_v1` journal) |
 | `SYNC_INTEGRATIONS_V1_PROPOSAL.md` | Sync integrations — systems / direction / triggers (**proposal only; no build**) |
 
 ## Apply (when Rose says yes — env NAMES only)

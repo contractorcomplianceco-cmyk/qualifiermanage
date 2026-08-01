@@ -1,5 +1,5 @@
 -- QualifierManageOS — 0012 Bulk volume seed v1
--- STATUS: PROPOSAL ONLY — do not apply until Rose yes on shape, then separate yes to apply.
+-- STATUS: APPLIED 2026-08-01 (Rose shape+apply yes on tip a48949e; journal 0012_seed_bulk_v1).
 -- Source: data.js composition (base already applied in 0009 + data.js more* + data.bulk.js).
 -- Companion: migrations/SEED_BULK_V1_PROPOSAL.md
 -- Tip baseline (collision fix): post-0efb682 renumber moreR R-609/R-610 → R-613/R-614

@@ -1,13 +1,14 @@
 # QualifierManageOS — Bulk volume seed v1 proposal (0012)
 
-**Status:** PROPOSAL ONLY — not applied  
+**Status:** APPLIED — Rose shape+apply yes 2026-08-01; journal `0012_seed_bulk_v1` @ `2026-08-01 00:08:04.923607+00`  
 **Audience:** `[INTERNAL ONLY]`  
-**Sequencing:** shape yes → separate apply yes  
+**Sequencing:** shape yes → separate apply yes (**both received**; apply completed)  
 **Depends on:** live `0009` base seed (+ `0010`/`0011` set_risk fixes); client debounce shipped (`0efb682`)  
 **Tip baseline (collision fix):** `f74d683da32b1e5798560524df8241062c02abff`  
+**Approved tip SHA:** `a48949e17262cee1a1ee127395e35ef12b7ca137`  
 **SQL:** `migrations/0012_seed_bulk_v1.sql` (~2.1 MB, generated from `data.js`)  
 **Source:** full `data.js` composition = base (already live) + hand `more*` + `data.bulk.js`  
-**Live journal:** still ends at `0011` — **0012 not applied** until shape yes + separate apply yes
+**Live journal tip:** `0012_seed_bulk_v1`
 
 ---
 
