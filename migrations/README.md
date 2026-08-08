@@ -27,13 +27,16 @@
 | `0011_set_risk_no_returning_star.sql` | Hotfix: set_risk RETURNING only granted columns | **Applied** |
 | `SEED_BULK_V1_PROPOSAL.md` | Bulk volume seed proposal | Applied |
 | `0012_seed_bulk_v1.sql` | Bulk seed from data.js | **Applied** |
-| `SYNC_INTEGRATIONS_V1_PROPOSAL.md` | Sync integrations — systems / direction / triggers | **Proposal only — no build** |
+| `SYNC_INTEGRATIONS_V1_PROPOSAL.md` | Sync integrations — systems / direction / triggers | Proposal; **Slice A approved to author** (2026-08-07) |
+| `0013_qualifier_profile_alignment_v1.sql.PROPOSED` | Profile field safe-subset (issue #4) | **PROPOSED — not applied** |
+| `0014_integration_events_slice_a_v1.sql.PROPOSED` | Slice A `integration_events` append-only (issue #3) | **PROPOSED — not applied** |
 
 ## Held (need separate Rose yes)
 
-- Sync integrations build / seams ON → `SYNC_INTEGRATIONS_V1_PROPOSAL.md` ask-backs
+- Apply of `0013` / `0014` (shape yes + separate apply yes)
+- Sync Slice B (gated on ID-001) / seams ON
 - Client / partner share / public go-live (approval lanes still blank = NO)
-- Merge of PR #1 to `main` (ask Rose: merge only vs merge + internal deploy)
+- Staff deploy push-yes (`scripts/deploy-internal.sh` still idle)
 
 ## Rules
 
