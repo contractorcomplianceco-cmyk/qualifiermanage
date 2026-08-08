@@ -1,10 +1,11 @@
 # QualifierManageOS — Sync integrations v1 (proposal only)
 
-**Status:** PROPOSAL ONLY — not scoped for build · **no code until Rose shape yes**  
+**Status:** Slice A **approved to author** (Rose 2026-08-07) · artifacts under `docs/sync-integrations/` + `0014_…PROPOSED` · **not applied · no seams ON**  
 **Audience:** `[INTERNAL ONLY]`  
 **Trigger for this doc:** Rose 2026-07-30 — “hasn’t been scoped yet; send quick proposal before building”  
-**Depends on:** live QMOS through `0011`; bulk seed `0012` separate track  
-**Seams today:** OFF (nullable `auditengine_id` columns exist; no sync worker, no outbound calls)
+**Depends on:** live QMOS through `0012`  
+**Seams today:** OFF (nullable `auditengine_id` columns exist; no sync worker, no outbound calls)  
+**Slice B:** gated on ID-001 · Contract C required for any future emit (Registry §2.2)
 
 ---
 
