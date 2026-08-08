@@ -1,0 +1,370 @@
+-- QualifierManageOS — 0013 Qualifier Profile Field Spec alignment v1
+-- STATUS: PROPOSED ONLY — do NOT apply until Rose shape yes + separate apply yes.
+-- Issue: #4 · Companion: docs/qualifier-profile-gap/*
+-- Spec: Ch. 2 AGENT RECOMMENDATION (2026-08-06) · PDF on PR #6
+-- Governance: AE Contracts 634151a — Registry §4a (no new Core id column),
+--   Rule 8 (no scoring formulas on rollups), Rule 7 LLM watch on notes fields.
+-- Baseline tip: main @ fd45815 / journal tip 0012_seed_bulk_v1
+--
+-- SAFE SUBSET ONLY (Rose cut):
+--   name decomposition, contact depth, verification event, review_frequency,
+--   license rollups as VIEWS, restriction convenience, enum CHECKs.
+-- EXPLICITLY OUT: companies 16–22, trades 23–24, monitoring 49,
+--   portal 56–59, cca_client_profile_id / any Core id column.
+
+BEGIN;
+
+-- ---------------------------------------------------------------------------
+-- A. Name decomposition (spec #3–#6)
+-- Keep full_name for backwards compatibility (generated when components present).
+-- ---------------------------------------------------------------------------
+ALTER TABLE qualifiers
+  ADD COLUMN IF NOT EXISTS first_name  text,           -- spec #3 First Name
+  ADD COLUMN IF NOT EXISTS middle_name text,           -- spec #4 Middle Name
+  ADD COLUMN IF NOT EXISTS last_name   text,           -- spec #5 Last Name
+  ADD COLUMN IF NOT EXISTS suffix      text            -- spec #6 Suffix
+    CHECK (suffix IS NULL OR suffix IN (
+      'Jr.', 'Sr.', 'II', 'III', 'IV', 'V', 'Other'
+    ));
+
+COMMENT ON COLUMN qualifiers.first_name  IS 'Spec #3 First Name — profile alignment v1';
+COMMENT ON COLUMN qualifiers.middle_name IS 'Spec #4 Middle Name — profile alignment v1';
+COMMENT ON COLUMN qualifiers.last_name   IS 'Spec #5 Last Name — profile alignment v1';
+COMMENT ON COLUMN qualifiers.suffix      IS 'Spec #6 Suffix — profile alignment v1';
+
+-- Prefer generated full_name when all of first+last exist; else leave legacy full_name.
+-- Supabase PG15 supports stored generated columns. If apply fails on generated DDL,
+-- fall back to view-only concatenation (open question #8).
+ALTER TABLE qualifiers
+  ALTER COLUMN full_name DROP NOT NULL;  -- allow generated path; backfill before tighten
+
+-- Note: converting full_name to GENERATED always is deferred to apply-time choice.
+-- Non-destructive default: keep full_name writable; add helper view for composed name.
+
+CREATE OR REPLACE VIEW v_qualifier_display_name AS
+SELECT
+  id,
+  full_name,
+  NULLIF(trim(concat_ws(' ',
+    first_name,
+    middle_name,
+    last_name,
+    suffix
+  )), '') AS composed_name,
+  COALESCE(
+    NULLIF(trim(concat_ws(' ', first_name, middle_name, last_name, suffix)), ''),
+    full_name
+  ) AS display_name
+FROM qualifiers;
+
+COMMENT ON VIEW v_qualifier_display_name IS
+  'Spec #3–#6 compat: composed name from parts, fallback full_name';
+
+-- ---------------------------------------------------------------------------
+-- B. Contact depth (spec #10–#15)
+-- ---------------------------------------------------------------------------
+ALTER TABLE qualifiers
+  ADD COLUMN IF NOT EXISTS mobile_phone text,          -- spec #10 Mobile Phone
+  ADD COLUMN IF NOT EXISTS alternate_phone text,       -- spec #11 Alternate Phone
+  ADD COLUMN IF NOT EXISTS street_1 text,              -- spec #12 Mailing Address
+  ADD COLUMN IF NOT EXISTS street_2 text,              -- spec #12
+  ADD COLUMN IF NOT EXISTS postal_code text,           -- spec #12
+  ADD COLUMN IF NOT EXISTS preferred_contact_method text  -- spec #13
+    CHECK (preferred_contact_method IS NULL OR preferred_contact_method IN (
+      'Email',
+      'Phone Call',
+      'SMS / Text',
+      'Portal Message',
+      'Video Call',
+      'Mail',
+      'No Preference',
+      'Unknown / Needs Confirmation'
+    )),
+  ADD COLUMN IF NOT EXISTS preferred_language text     -- spec #14
+    CHECK (preferred_language IS NULL OR preferred_language IN (
+      'English', 'Spanish', 'French', 'Portuguese', 'Haitian Creole',
+      'Mandarin Chinese', 'Cantonese', 'Vietnamese', 'Korean', 'Arabic',
+      'Russian', 'Other', 'Unknown / Needs Confirmation'
+    ));
+
+-- city already present; state_of_residence already present (spec #12)
+COMMENT ON COLUMN qualifiers.mobile_phone IS 'Spec #10 Mobile Phone — profile alignment v1';
+COMMENT ON COLUMN qualifiers.alternate_phone IS 'Spec #11 Alternate Phone — profile alignment v1';
+COMMENT ON COLUMN qualifiers.street_1 IS 'Spec #12 Mailing Address street_1 — profile alignment v1';
+COMMENT ON COLUMN qualifiers.street_2 IS 'Spec #12 Mailing Address street_2 — profile alignment v1';
+COMMENT ON COLUMN qualifiers.postal_code IS 'Spec #12 Mailing Address postal_code — profile alignment v1';
+COMMENT ON COLUMN qualifiers.preferred_contact_method IS 'Spec #13 Preferred Contact Method — profile alignment v1';
+COMMENT ON COLUMN qualifiers.preferred_language IS 'Spec #14 Preferred Language — profile alignment v1';
+
+-- Backfill mobile_phone from legacy phone (non-destructive)
+UPDATE qualifiers
+SET mobile_phone = phone
+WHERE mobile_phone IS NULL AND phone IS NOT NULL;
+
+-- Time zone enum tighten (spec #15) — union of common QMOS free-text + spec picklist
+-- First normalize known short forms if present; CHECK uses spec labels.
+ALTER TABLE qualifiers
+  DROP CONSTRAINT IF EXISTS qualifiers_timezone_check;
+
+ALTER TABLE qualifiers
+  ADD CONSTRAINT qualifiers_timezone_check CHECK (
+    timezone IS NULL OR timezone IN (
+      'Eastern', 'Central', 'Mountain', 'Pacific', 'Alaska',
+      'Hawaii-Aleutian', 'Atlantic', 'Chamorro', 'Samoa',
+      'Unknown / Needs Confirmation',
+      -- legacy free-text survivors until remap yes:
+      'America/New_York', 'America/Chicago', 'America/Denver',
+      'America/Los_Angeles', 'America/Anchorage', 'Pacific/Honolulu',
+      'ET', 'CT', 'MT', 'PT'
+    )
+  );
+
+COMMENT ON COLUMN qualifiers.timezone IS 'Spec #15 Time Zone — CHECK union spec+legacy; remap later';
+
+-- ---------------------------------------------------------------------------
+-- C. Verification event fields (spec #26, #27, #29)
+-- ---------------------------------------------------------------------------
+ALTER TABLE qualifiers
+  ADD COLUMN IF NOT EXISTS identity_verified_date date,     -- spec #26
+  ADD COLUMN IF NOT EXISTS identity_verified_by text        -- spec #27
+    REFERENCES staff(name),
+  ADD COLUMN IF NOT EXISTS verification_notes text;         -- spec #29 (≠ admin_only_notes)
+
+COMMENT ON COLUMN qualifiers.identity_verified_date IS 'Spec #26 Identity Verified Date — profile alignment v1';
+COMMENT ON COLUMN qualifiers.identity_verified_by IS 'Spec #27 Identity Verified By → staff — profile alignment v1';
+COMMENT ON COLUMN qualifiers.verification_notes IS
+  'Spec #29 Verification Notes — verification-scoped; separate from admin_only_notes. Rule 7: human-authored by default; log if LLM-generated.';
+
+-- ---------------------------------------------------------------------------
+-- D. Review cadence (spec #52); #53/#54 already exist
+-- ---------------------------------------------------------------------------
+ALTER TABLE qualifiers
+  ADD COLUMN IF NOT EXISTS review_frequency text            -- spec #52
+    CHECK (review_frequency IS NULL OR review_frequency IN (
+      'Monthly', 'Quarterly', 'Semiannual', 'Annual',
+      'Event Driven', 'On Demand', 'Custom',
+      'Unknown / Needs Confirmation'
+    ));
+
+COMMENT ON COLUMN qualifiers.review_frequency IS 'Spec #52 Review Frequency — profile alignment v1';
+COMMENT ON COLUMN qualifiers.last_reviewed_date IS 'Spec #53 Last Review Date — pre-existing';
+COMMENT ON COLUMN qualifiers.next_review_due IS 'Spec #54 Next Review Date — pre-existing';
+
+-- ---------------------------------------------------------------------------
+-- E. Restriction convenience (spec #45–#46)
+-- has_active_restriction: derived in view (below). Optional trigger-maintained
+-- cache column omitted to honor honesty / no stale rollups — view is source.
+-- restriction_summary: admin-editable text on qualifiers.
+-- ---------------------------------------------------------------------------
+ALTER TABLE qualifiers
+  ADD COLUMN IF NOT EXISTS restriction_summary text;        -- spec #46
+
+COMMENT ON COLUMN qualifiers.restriction_summary IS
+  'Spec #46 Restriction Summary — nullable admin-editable. Rule 7: human-authored by default; log if LLM-generated.';
+
+-- ---------------------------------------------------------------------------
+-- F. License rollups as VIEWS only (spec #31–#36) — Rule 8: no scoring formula
+-- overall_license_health is a label derived from license_status / license_health_status
+-- enums already on licenses — not a portal-derived score.
+-- ---------------------------------------------------------------------------
+CREATE OR REPLACE VIEW v_qualifier_license_rollups AS
+SELECT
+  q.id AS qualifier_id,
+  COUNT(l.id) FILTER (
+    WHERE l.license_status IN ('Active', 'Renewal Window', 'Expiring Soon')
+  )::integer AS active_license_count,                       -- spec #31
+  COUNT(l.id) FILTER (
+    WHERE l.license_status = 'Expiring Soon'
+       OR l.license_health_status = 'Expiring Soon'
+       OR (l.expiration_date IS NOT NULL AND l.expiration_date <= (CURRENT_DATE + 60))
+  )::integer AS licenses_expiring_soon,                     -- spec #32
+  COUNT(l.id) FILTER (
+    WHERE l.license_status = 'Expired'
+       OR l.license_health_status = 'Expired'
+  )::integer AS expired_license_count,                      -- spec #33
+  COUNT(l.id) FILTER (
+    WHERE l.restrictions IS NOT NULL AND length(trim(l.restrictions)) > 0
+  )::integer AS restricted_license_count,                   -- spec #34
+  MIN(l.expiration_date) FILTER (
+    WHERE l.expiration_date IS NOT NULL AND l.expiration_date >= CURRENT_DATE
+  ) AS next_license_expiration_date,                        -- spec #35
+  CASE
+    WHEN COUNT(l.id) = 0 THEN 'No License Records'
+    WHEN COUNT(l.id) FILTER (
+      WHERE l.restrictions IS NOT NULL AND length(trim(l.restrictions)) > 0
+    ) > 0 THEN 'Restriction Present'
+    WHEN COUNT(l.id) FILTER (
+      WHERE l.license_status = 'Expired' OR l.license_health_status = 'Expired'
+    ) > 0 THEN 'Expired License Present'
+    WHEN COUNT(l.id) FILTER (
+      WHERE l.license_status = 'Expiring Soon'
+         OR l.license_health_status IN ('Expiring Soon', 'Renewal Window')
+    ) > 0 THEN 'Active with Upcoming Renewal'
+    WHEN COUNT(l.id) FILTER (
+      WHERE l.license_health_status = 'Verified Current'
+         OR l.license_status = 'Active'
+    ) > 0 THEN 'Verified - Active'
+    WHEN COUNT(l.id) FILTER (
+      WHERE l.license_health_status IN ('Missing Verification', 'Human Review Required')
+         OR l.license_status IN ('Unknown', 'Human Review Required')
+    ) > 0 THEN 'Unable to Verify'
+    ELSE 'Not Assessed'
+  END AS overall_license_health,                            -- spec #36 (label only; Rule 8)
+  (COUNT(l.id) FILTER (
+    WHERE l.restrictions IS NOT NULL AND length(trim(l.restrictions)) > 0
+  ) > 0) AS has_active_restriction                          -- spec #45 derived
+FROM qualifiers q
+LEFT JOIN licenses l ON l.qualifier_id = q.id
+GROUP BY q.id;
+
+COMMENT ON VIEW v_qualifier_license_rollups IS
+  'Spec #31–#36,#45 license rollups — computed on read; no stored stale rollups; Rule 8 no scoring formula';
+
+-- ---------------------------------------------------------------------------
+-- G. Enum tightening — present / DATA_MODEL vocabularies (CHECK)
+-- Uses current QMOS DATA_MODEL values so seed rows remain valid.
+-- Spec-union widening for verification / background / availability only.
+-- Placement status: keep QMOS vocabulary (see ENUM_CROSSCHECK open Q).
+-- ---------------------------------------------------------------------------
+
+ALTER TABLE qualifiers DROP CONSTRAINT IF EXISTS qualifiers_status_check;
+ALTER TABLE qualifiers ADD CONSTRAINT qualifiers_status_check CHECK (
+  status IN (
+    'Active', 'Verified', 'New', 'Intake Started', 'Documents Requested',
+    'Under Review', 'Paused', 'Do Not Place Pending Review', 'Inactive'
+  )
+);
+
+ALTER TABLE qualifiers DROP CONSTRAINT IF EXISTS qualifiers_verification_status_check;
+ALTER TABLE qualifiers ADD CONSTRAINT qualifiers_verification_status_check CHECK (
+  verification_status IN (
+    -- QMOS DATA_MODEL
+    'Not Started', 'In Progress', 'Verified', 'Needs More Info',
+    'Failed Review', 'Human Review Required',
+    -- Spec union (Ch. 2)
+    'Pending', 'Verified with Exception', 'Failed', 'Unable to Verify',
+    'Expired / Reverification Needed', 'Waived',
+    'Unknown / Needs Confirmation'
+  )
+);
+
+ALTER TABLE qualifiers DROP CONSTRAINT IF EXISTS qualifiers_background_check_status_check;
+ALTER TABLE qualifiers ADD CONSTRAINT qualifiers_background_check_status_check CHECK (
+  background_check_status IN (
+    'Not Started', 'Pending', 'Clear', 'Review Required',
+    'Not Required', 'Pending Consent', 'In Progress', 'Adverse Result',
+    'Expired', 'Unable to Complete', 'Unknown / Needs Confirmation'
+  )
+);
+
+ALTER TABLE qualifiers DROP CONSTRAINT IF EXISTS qualifiers_credit_check_status_check;
+ALTER TABLE qualifiers ADD CONSTRAINT qualifiers_credit_check_status_check CHECK (
+  credit_check_status IN (
+    'Not Started', 'Pending', 'Clear', 'Review Required',
+    'Not Required', 'Pending Consent', 'In Progress', 'Adverse Result',
+    'Expired', 'Unable to Complete', 'Unknown / Needs Confirmation'
+  )
+);
+
+ALTER TABLE availability DROP CONSTRAINT IF EXISTS availability_status_check;
+ALTER TABLE availability ADD CONSTRAINT availability_status_check CHECK (
+  availability_status IN (
+    'Available Now', 'Available Soon', 'Limited Availability',
+    'Not Available', 'Paused',
+    'Available on Future Date', 'Temporarily Unavailable',
+    'Pending Confirmation', 'Unknown / Needs Confirmation'
+  )
+);
+
+ALTER TABLE licenses DROP CONSTRAINT IF EXISTS licenses_license_status_check;
+ALTER TABLE licenses ADD CONSTRAINT licenses_license_status_check CHECK (
+  license_status IN (
+    'Active', 'Pending', 'Renewal Window', 'Expiring Soon', 'Expired',
+    'Suspended', 'Inactive', 'Unknown', 'Human Review Required'
+  )
+);
+
+ALTER TABLE licenses DROP CONSTRAINT IF EXISTS licenses_license_health_status_check;
+ALTER TABLE licenses ADD CONSTRAINT licenses_license_health_status_check CHECK (
+  license_health_status IS NULL OR license_health_status IN (
+    'Verified Current', 'Renewal Window', 'Expiring Soon', 'Expired',
+    'Missing Verification', 'Human Review Required',
+    'Do Not Place Pending Review'
+  )
+);
+
+ALTER TABLE documents DROP CONSTRAINT IF EXISTS documents_document_status_check;
+ALTER TABLE documents ADD CONSTRAINT documents_document_status_check CHECK (
+  document_status IN (
+    'Requested', 'Received', 'In Review', 'Approved', 'Rejected',
+    'Expired', 'Needs Update'
+  )
+);
+
+ALTER TABLE needs DROP CONSTRAINT IF EXISTS needs_need_status_check;
+ALTER TABLE needs ADD CONSTRAINT needs_need_status_check CHECK (
+  need_status IN (
+    'Draft', 'Open', 'Under Review', 'Match Proposed', 'Match Approved',
+    'Documents Pending', 'Active', 'Ending Soon', 'Closed', 'At Risk'
+  )
+);
+
+ALTER TABLE needs DROP CONSTRAINT IF EXISTS needs_urgency_level_check;
+ALTER TABLE needs ADD CONSTRAINT needs_urgency_level_check CHECK (
+  urgency_level IN ('Low', 'Normal', 'High', 'Emergency')
+);
+
+ALTER TABLE needs DROP CONSTRAINT IF EXISTS needs_admin_review_status_check;
+ALTER TABLE needs ADD CONSTRAINT needs_admin_review_status_check CHECK (
+  admin_review_status IN (
+    'Not Reviewed', 'In Review', 'Approved to Match', 'Hold',
+    'Rejected', 'Needs More Info'
+  )
+);
+
+ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_match_status_check;
+ALTER TABLE matches ADD CONSTRAINT matches_match_status_check CHECK (
+  match_status IN (
+    'Suggested', 'Possible Fit', 'Best Fit', 'Not Recommended',
+    'Pending Review', 'Approved', 'Rejected', 'Backup Only'
+  )
+);
+
+ALTER TABLE matches DROP CONSTRAINT IF EXISTS matches_admin_approval_status_check;
+ALTER TABLE matches ADD CONSTRAINT matches_admin_approval_status_check CHECK (
+  admin_approval_status IN (
+    'Pending', 'Approved', 'Rejected', 'Needs More Info', 'Hold'
+  )
+);
+
+ALTER TABLE placements DROP CONSTRAINT IF EXISTS placements_placement_status_check;
+ALTER TABLE placements ADD CONSTRAINT placements_placement_status_check CHECK (
+  placement_status IN (
+    'Pending Activation', 'Active', 'Ending Soon', 'Renewed',
+    'Replaced', 'Ended', 'At Risk'
+  )
+);
+
+ALTER TABLE risks DROP CONSTRAINT IF EXISTS risks_risk_level_check;
+ALTER TABLE risks ADD CONSTRAINT risks_risk_level_check CHECK (
+  risk_level IN ('Low', 'Medium', 'High', 'Critical')
+);
+
+ALTER TABLE risks DROP CONSTRAINT IF EXISTS risks_risk_status_check;
+ALTER TABLE risks ADD CONSTRAINT risks_risk_status_check CHECK (
+  risk_status IN ('Open', 'In Review', 'Resolved', 'Dismissed', 'Escalated')
+);
+
+-- ---------------------------------------------------------------------------
+-- H. Grants — mirror authenticated staff read on new view; columns follow table RLS
+-- (Exact GRANT shape to match 0002/0003/0008 at apply time — placeholder)
+-- ---------------------------------------------------------------------------
+GRANT SELECT ON v_qualifier_license_rollups TO authenticated;
+GRANT SELECT ON v_qualifier_display_name TO authenticated;
+
+-- NO outbound events in this migration. If a future qualifier.profile-updated.v1
+-- emitter is approved, envelope MUST be Contract C: eventId, id, event, occurredAt, payload.
+
+COMMIT;
+
+-- ROLLBACK; -- dry-run tip: wrap apply in a transaction and roll back until yes

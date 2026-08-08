@@ -1,0 +1,66 @@
+-- QualifierManageOS — 0014 Sync Slice A: integration_events (append-only)
+-- STATUS: PROPOSED ONLY — do NOT apply until Rose shape yes + separate apply yes.
+-- Issue: #3 · Companion: docs/sync-integrations/*
+-- Approved: Rose 2026-08-07 — Slice A map-only, no live traffic.
+-- Governance: AE Contracts 634151a — Contract C envelope (Registry §2.2);
+--   Slice B gated on ID-001; no seams ON; zero outbound.
+-- Baseline: journal tip 0012_seed_bulk_v1
+
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS integration_events (
+  event_id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),  -- Contract C eventId
+  id              text NOT NULL,       -- Contract C id (aggregate)
+  event           text NOT NULL,       -- Contract C event (canonical name)
+  occurred_at     timestamptz NOT NULL, -- Contract C occurredAt
+  payload         jsonb NOT NULL DEFAULT '{}'::jsonb,  -- Contract C payload
+  -- Slice A bookkeeping (local, not part of wire envelope)
+  direction       text NOT NULL CHECK (direction IN ('outbound_stub', 'inbound_stub', 'map_only')),
+  target_system   text NOT NULL CHECK (target_system IN (
+    'auditengine', 'documentcollection', 'zoho', 'finance', 'matching_engine', 'internal'
+  )),
+  delivery_status text NOT NULL DEFAULT 'stub_recorded'
+    CHECK (delivery_status IN (
+      'stub_recorded',   -- Slice A: never sent
+      'map_only',        -- documentation / dry-run row
+      'suppressed'       -- explicitly not delivered
+    )),
+  -- Forbidden in Slice A: any success/failure that implies wire traffic
+  correlation_id  text,
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT integration_events_canonical_event_name CHECK (
+    event ~ '^[a-z][a-z0-9_]*\.[a-z0-9_.-]+\.v[0-9]+$'
+    OR event IN (
+      'qualifier.need-created.v1',           -- QM-001
+      'qualifier.placement-approved.v1'      -- QM-002
+    )
+  )
+);
+
+CREATE INDEX IF NOT EXISTS integration_events_occurred_at_idx
+  ON integration_events (occurred_at DESC);
+CREATE INDEX IF NOT EXISTS integration_events_event_idx
+  ON integration_events (event);
+CREATE INDEX IF NOT EXISTS integration_events_target_idx
+  ON integration_events (target_system, delivery_status);
+
+COMMENT ON TABLE integration_events IS
+  'Slice A append-only outbox/inbox log. Contract C columns required. delivery_status stub_* only — no live outbound.';
+
+ALTER TABLE integration_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE integration_events FORCE ROW LEVEL SECURITY;
+
+-- Staff read; no anon. Inserts restricted to service/orchestrator paths when wired —
+-- Slice A: no writer wired. Policies match spirit of 0002 (authenticated staff SELECT).
+CREATE POLICY integration_events_select_staff ON integration_events
+  FOR SELECT TO authenticated
+  USING (COALESCE((auth.jwt() ->> 'qmos_role') IS NOT NULL, false));
+
+-- No INSERT/UPDATE/DELETE policies for authenticated in Slice A (append via
+-- service_role only when a future slice wires stubs — still no live traffic).
+
+GRANT SELECT ON integration_events TO authenticated;
+-- Revoke broad writes
+REVOKE INSERT, UPDATE, DELETE ON integration_events FROM authenticated, anon, PUBLIC;
+
+COMMIT;
