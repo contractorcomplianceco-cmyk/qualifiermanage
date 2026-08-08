@@ -3,7 +3,7 @@
 **Tag:** `[PROPOSAL]` · `[INTERNAL ONLY]`  
 **Lane:** Design only — no activation  
 **Systems:** FormsConnect · ComplianceCore · QualifierManageOS · RoseOS · AuditEngine · QualifierConnect (future)  
-**QMOS base:** `DATA_MODEL.md` Option A (`auditengine_id`) + Core link via `cca_client_profile_id`
+**QMOS base:** `DATA_MODEL.md` Option A (`auditengine_id`) · Core identity link **on hold** (Registry §4a / ID-001) — no `cca_client_profile_id` column on QMOS tables
 
 ---
 
@@ -23,7 +23,7 @@
                     │   ComplianceCore     │
                     │  identity match/     │
                     │  create → returns    │
-                    │  cca_client_profile_id
+                    │  core_profile_ref          // server-side only until ID-001
                     └──────────┬──────────┘
                                │ profile_id + normalized facts
                                ▼
@@ -68,7 +68,8 @@ Applicant                FormsConnect           ComplianceCore         RoseOS   
     │                         │                       │── IntakeResolved ─►│                  │                      │
     │                         │                       │                   │── create/update ─►│                      │
     │                         │                       │                   │   Q- reflection   │                      │
-    │                         │                       │                   │   (link profile_id)
+    │                         │                       │                   │   (server-side Core resolve;
+    │                         │                       │                   │    no QMOS Core-id column)
     │                         │                       │                   │── KnowledgeReq ─────────────────────────►│
     │                         │                       │                   │◄─ KnowledgeResp ─────────────────────────┤
     │                         │                       │                   │── route to queue │                      │
@@ -84,8 +85,8 @@ Applicant                FormsConnect           ComplianceCore         RoseOS   
 
 1. **FormsConnect** is the only place that defines/publishes the form. QMOS never embeds a parallel form schema that staff must edit in code.  
 2. **ComplianceCore** runs **before** QMOS creates/updates a qualifier reflection.  
-3. QMOS stores **`cca_client_profile_id`** as the Core foreign key; it does **not** treat email/name as identity SoT.  
-4. **`auditengine_id`** remains Option A (nullable AE matrix id) — separate from Core profile id.  
+3. **Identity hold (Registry §4a / ID-001):** QMOS does **not** add a `cca_client_profile_id` (or any new Core identifier) column on `qualifiers` until ID-001 resolves a network-canonical ID and Rose re-decides the model. Until then, any Core resolution is **server-side only** and may map via existing Option A `auditengine_id` — QMOS never mints Core identity. Email/name are **not** identity SoT.  
+4. **`auditengine_id`** remains Option A (nullable AE matrix id) — the only foreign identity column on QMOS tables today.  
 5. RoseOS owns “what happens next”; FormsConnect conditionals only collect answers.  
 6. Staff human decision remains the placement gate — suggestions are decision support only.  
 7. “Verified” is **never** set by submit.
@@ -95,7 +96,7 @@ Applicant                FormsConnect           ComplianceCore         RoseOS   
 | Event | Producer | Consumers | Purpose |
 |---|---|---|---|
 | `formsconnect.submission.created` | FormsConnect | Core (primary), RoseOS (notify) | Versioned answers + consent |
-| `core.profile.resolved` | ComplianceCore | RoseOS, QMOS | Emits `cca_client_profile_id` + match confidence |
+| `core.profile.resolved` | ComplianceCore | RoseOS, QMOS | Contract C event; payload has server-side `core_profile_ref` + match confidence (not persisted on QMOS) |
 | `qmos.qualifier.reflected` | QMOS | RoseOS | `Q-` id + intake stage |
 | `roseos.intake.routed` | RoseOS | QMOS staff queues | Queue + priority + path |
 | `roseos.match.suggested` | RoseOS | QMOS Match Center | Candidate suggestions + factors |
@@ -286,7 +287,7 @@ QMOS does **not** own this schema. It stores a **reference** (`formsconnect_subm
 ### 3.2 Standard Lead stages (proposed)
 
 1. **Submitted** — FormsConnect thank-you  
-2. **Core resolved** — `cca_client_profile_id` assigned  
+2. **Core resolved** — server-side Core profile ref available to orchestrator (not a QMOS column)  
 3. **QMOS New qualifier lead** — reflection created  
 4. **Staff review** — missing info / qualify / nurture  
 5. **Optional:** promote to Verification candidate (staff or RoseOS recommend)  
@@ -341,9 +342,9 @@ ComplianceCore is the **primary identity record** for the person/business profil
 
 | Outcome | Core action | Confidence | Downstream |
 |---|---|---|---|
-| `exact_match` | Update/append allowed fields only | high | Reuse `cca_client_profile_id` |
+| `exact_match` | Update/append allowed fields only | high | Reuse Core profile (server-side); QMOS keeps `Q-###` PK |
 | `probable_match` | **No auto-merge** — queue for staff | medium | Hold QMOS create **or** create lead flagged `identity_review_required` |
-| `no_match` | Create Core profile at **lead** lifecycle stage | n/a | New `cca_client_profile_id` |
+| `no_match` | Create Core profile at **lead** lifecycle stage | n/a | New Core profile (Core-minted); **not** persisted as a QMOS column until ID-001 |
 | `conflict` | No write of trusted fields; escalate | — | Staff resolution |
 
 ### 4.4 Upsert rules (trusted vs applicant-asserted)
@@ -354,34 +355,51 @@ ComplianceCore is the **primary identity record** for the person/business profil
 | **Applicant-asserted** (self-reported license status, prefs) | Append / update “asserted” layer; never overwrite trusted verification facts | Store as asserted |
 | **Consent / submission meta** | Always append new submission record | Append |
 
-Proposed Core API (logical):
+Proposed Core API (logical) — **Contract C envelope** (Registry §2.2). Every request/response is:
+
+```
+{
+  "eventId": "<uuid>",           // unique per emission
+  "id": "<aggregate id>",        // e.g. submission_id or core profile id
+  "event": "<canonical.name.v1>",
+  "occurredAt": "<ISO-8601>",
+  "payload": { ... }             // body below — no local envelope inventions
+}
+```
 
 ```
 POST /core/v1/profiles/resolve-from-intake
-Request:
+Contract C event (request): core.profile.resolve-from-intake.v1
+payload:
   submission_id, form_version, consent_version,
   identity: { first, middle, last, preferred, email, phone, city, state },
   licenses[]: { number, jurisdiction, … },
   path_intent, source_channel
-Response:
-  cca_client_profile_id,
+
+Contract C event (response): core.profile.resolved.v1
+payload:
+  core_profile_ref,            // Core-minted id — server-side use only until ID-001
   match_outcome: exact_match|probable_match|no_match|conflict,
   match_confidence: 0–1,
   match_candidates[] (if probable),
   profile_lifecycle_stage,
-  field_write_report[]  // what was written vs held
+  field_write_report[]         // what was written vs held
 ```
 
 ### 4.5 What Core returns to QMOS / RoseOS
 
-- `cca_client_profile_id` (**required** before durable QMOS reflection in steady state)  
+- `core_profile_ref` — Core-minted identifier for **server-side resolution only** (orchestrator / BFF). **Not** stored as a new column on QMOS `qualifiers` while the identity model is on hold.  
 - `match_outcome` + `match_confidence`  
 - Optional display name / primary email (read-only mirror hints)  
 - Flags: `identity_review_required`, `duplicate_suspect`
 
-### 4.6 QMOS rule
+### 4.6 QMOS rule (identity hold — Registry §4a)
 
-QMOS **references** Core via `cca_client_profile_id`. Staff edit qualifier-domain fields in QMOS; identity corrections that affect the person SoT go through Core (or staff tools that write Core).
+**QMOS references Core via server-side resolution against `auditengine_id` mapping; no client-facing Core identifier column until ID-001 is live and Rose re-decides the identity model.**
+
+- Do **not** add `cca_client_profile_id` (or equivalent) on `qualifiers` in this design lane.  
+- Staff edit qualifier-domain fields in QMOS; identity corrections that affect the person SoT go through Core (or staff tools that write Core).  
+- Friendly `Q-###` PKs remain; Option A `auditengine_id` stays the only foreign identity column on QMOS tables today.
 
 ---
 
@@ -389,10 +407,10 @@ QMOS **references** Core via `cca_client_profile_id`. Staff edit qualifier-domai
 
 ### 5.1 Reflection principle
 
-On intake (when wiring approved):
+On intake (when wiring approved — still design-only):
 
-1. Ensure Core `cca_client_profile_id` exists.  
-2. Find existing QMOS qualifier by `cca_client_profile_id` (preferred) or staff-resolved duplicate.  
+1. Resolve Core identity **server-side** (orchestrator); do not persist a new Core id column on QMOS pending ID-001.  
+2. Find existing QMOS qualifier by staff-resolved duplicate rules and/or existing Option A `auditengine_id` mapping — **not** by a QMOS-stored Core FK.  
 3. If none: create `Q-###` with intake defaults.  
 4. Store FormsConnect submission reference + consent/form versions.  
 5. **Do not** copy Core into an independently authoritative identity blob — mirror display fields only as needed for staff UX, refreshable from Core.
@@ -401,11 +419,11 @@ On intake (when wiring approved):
 
 | Column | Table | Purpose |
 |---|---|---|
-| `cca_client_profile_id` | `qualifiers` | uuid/text unique nullable — Core FK |
+| ~~`cca_client_profile_id`~~ | — | **REMOVED from this design** — Registry §4a / ID-001 hold. Revisit after ID-001. |
 | `formsconnect_submission_id` | `qualifiers` or child `qualifier_intake_submissions` | Latest or 1:N submissions |
 | `intake_path` | `qualifiers` or submission child | `standard_lead` · `verified_path` · `unsure_routed_*` |
 | `intake_stage` | `qualifiers` | Controlled stage enum (below) |
-| `identity_match_outcome` | submission child | From Core |
+| `identity_match_outcome` | submission child | From Core (server-side resolve) |
 | `identity_match_confidence` | submission child | From Core |
 | `auditengine_id` | already exists | Option A — AE matrix; **not** Core id |
 
@@ -416,7 +434,7 @@ On intake (when wiring approved):
 | Staff sees | Proposed derivation |
 |---|---|
 | New qualifier lead | `intake_stage = new_lead` · `status ∈ {New, Intake Started}` |
-| Existing qualifier | `cca_client_profile_id` matched existing `Q-` with prior history |
+| Existing qualifier | Server-side Core resolve / staff duplicate match to existing `Q-` with prior history |
 | Verification candidate | `intake_stage = verification_candidate` · `verificationStatus ∈ {Not Started, In Progress, …}` but **not** Verified |
 | Verified qualifier | `verificationStatus = Verified` **and** staff/program gate completed (never auto from form) |
 | Placement-ready qualifier | `availableForPlacement = true` + license health usable + no Do-Not-Place |
@@ -544,35 +562,59 @@ Human staff: approve / reject / needs more info / hold — append-only audit (ex
 
 AuditEngine supplies **regulatory, licensing, trade, jurisdiction, risk, and compliance knowledge** used by RoseOS. QMOS must **not** recreate AE’s knowledgebase or scoring engine.
 
-### 7.2 Knowledge request (logical)
+### 7.1a Validated knowledge only (RS-001 / RS-002 loop)
+
+AE.KnowledgeResponse carries only knowledge that has completed Research Hub validation (**RS-001** out, human-signed **RS-002** back). Provisional or in-flight research is either withheld or flagged `provisional=true` with a validation state. **QMOS never treats provisional knowledge as authoritative.** (Registry §2.3a — AE serving validated knowledge is expected; AE committing unvalidated findings is forbidden.)
+
+### 7.2 Knowledge request (logical) — Contract C envelope
+
+Every AE request/response uses Registry §2.2 Contract C: `eventId`, `id`, `event`, `occurredAt`, `payload`. No local envelope inventions.
 
 ```
-AE.KnowledgeRequest
-  purpose: intake_enrichment | verification_support | match_support
-  cca_client_profile_id
-  qmos_qualifier_id?          // if already reflected
-  licenses[]: { number, jurisdiction, trade_asserted }
-  jurisdictions_of_interest[]
-  trade_classifications[]
-```
-
-### 7.3 Knowledge response (logical)
-
-```
-AE.KnowledgeResponse
-  request_id
-  license_lookups[]: {
-    jurisdiction, number,
-    board_status_known: bool,
-    status_summary?,            // staff-safe
-    disciplinary_flags_summary?, // staff-safe; no raw PII dumps to public
-    as_of
+Contract C event: ae.knowledge.request.v1
+{
+  "eventId": "<uuid>",
+  "id": "<request correlation id>",
+  "event": "ae.knowledge.request.v1",
+  "occurredAt": "<ISO-8601>",
+  "payload": {
+    "purpose": "intake_enrichment | verification_support | match_support",
+    "core_profile_ref?": "<server-side Core ref — not a QMOS column>",
+    "qmos_qualifier_id?": "<Q-### if already reflected>",
+    "licenses": [{ "number", "jurisdiction", "trade_asserted" }],
+    "jurisdictions_of_interest": [],
+    "trade_classifications": []
   }
-  jurisdiction_rules_hints[]    // e.g. dual-hat / attach constraints — advisory
-  trade_taxonomy_alignment[]    // map free-text → AE classes
-  risk_taxonomy_tags[]          // for RoseOS — not client-facing scores
-  gaps[]                        // missing info to collect later
-  auditengine_matrix_ids?       // for later Option A attach — seams still OFF
+}
+```
+
+### 7.3 Knowledge response (logical) — Contract C envelope
+
+```
+Contract C event: ae.knowledge.response.v1
+{
+  "eventId": "<uuid>",
+  "id": "<request correlation id>",
+  "event": "ae.knowledge.response.v1",
+  "occurredAt": "<ISO-8601>",
+  "payload": {
+    "request_id": "<same correlation>",
+    "provisional": false,              // true only if withheld validation; QMOS must not treat as authoritative
+    "validation_state": "rs002_signed | provisional | withheld",
+    "license_lookups": [{
+      "jurisdiction", "number",
+      "board_status_known": true,
+      "status_summary?",
+      "disciplinary_flags_summary?",
+      "as_of"
+    }],
+    "jurisdiction_rules_hints": [],
+    "trade_taxonomy_alignment": [],
+    "risk_taxonomy_tags": [],
+    "gaps": [],
+    "auditengine_matrix_ids?": []      // later Option A attach — seams still OFF
+  }
+}
 ```
 
 ### 7.4 Display rules
@@ -601,7 +643,7 @@ Avoid rebuilding intake when QualifierConnect ships. Public form is **stage 0**;
 Applicant has submission_id + email
   → QualifierConnect “Claim profile”
   → Verify email / magic link / approved auth
-  → Resolve cca_client_profile_id (Core)
+  → Resolve Core profile server-side (no QMOS Core-id column)
   → Bind applicant auth subject ↔ Core profile
   → Open continuation checklist based on intake_stage / path
 ```
@@ -648,7 +690,7 @@ Store on submission / reflection:
 
 | Scenario | Rule |
 |---|---|
-| Existing Core contact becomes qualifier lead | Core match → same `cca_client_profile_id` → create QMOS reflection if missing |
+| Existing Core contact becomes qualifier lead | Core match (server-side) → create QMOS reflection if missing; no QMOS Core-id column |
 | Existing qualifier submits again | Match Core + existing `Q-` → append submission row; refresh asserted prefs; notify `internalOwner` |
 | Same person, second email | Core probable_match on phone/license → staff merge in Core; QMOS follows profile_id |
 | Multiple licenses, one person | One Core profile · one Q- · many `LICENSES` rows |
@@ -658,7 +700,7 @@ Store on submission / reflection:
 
 ### 9.3 QMOS duplicate keys (lookup order when wiring)
 
-1. `cca_client_profile_id`  
+1. Server-side Core resolve result (not a QMOS column)  
 2. Staff-confirmed merge  
 3. **Never** auto-merge on `fullName` alone  
 4. Email match is a **hint** that must reconcile through Core  
@@ -717,9 +759,9 @@ Screening remains **status-only** in QMOS (`vault://status-only` pattern) — ne
 
 | Proposed id | Change | Destructive? |
 |---|---|---|
-| `0013_qualifier_core_link_v1` | `qualifiers.cca_client_profile_id` uuid UNIQUE NULL + index | No |
-| `0014_qualifier_intake_submissions_v1` | Child table: submission_id, form/consent versions, path_intent, answers jsonb or pointer, match_outcome, confidence, created_at | No |
-| `0015_intake_stage_v1` | `qualifiers.intake_stage` text + check constraint | No |
+| ~~`0013_qualifier_core_link_v1`~~ | **Withdrawn** — would have added `cca_client_profile_id`; blocked by Registry §4a / ID-001 | — |
+| `0013_qualifier_intake_submissions_v1` | Child table: submission_id, form/consent versions, path_intent, answers jsonb or pointer, match_outcome, confidence, created_at (**no Core id column**) | No |
+| `0014_intake_stage_v1` | `qualifiers.intake_stage` text + check constraint | No |
 | Later | Extend `decision_audit_log.action` / `entity_type` for intake + identity_link | No (additive constraints) |
 
 **Do not apply** until Rose shape + apply yes. Live journal remains `0012`.
@@ -740,7 +782,7 @@ Screening remains **status-only** in QMOS (`vault://status-only` pattern) — ne
 | Dependency | Need |
 |---|---|
 | FormsConnect | Form builder + versioning + consent |
-| ComplianceCore | Identity resolve/upsert + `cca_client_profile_id` |
+| ComplianceCore | Identity resolve/upsert (Core-minted ids stay in Core / server-side until ID-001) |
 | QMOS Supabase | Non-destructive columns/tables when approved |
 | RoseOS | Orchestration host |
 | AuditEngine | Knowledge API (staff-safe) |
@@ -764,7 +806,7 @@ Screening remains **status-only** in QMOS (`vault://status-only` pattern) — ne
 | **D0** | Design package (this doc) | 13 returns · contracts · field map | Shape yes / revise |
 | **D1** | FormsConnect draft form | Build form in FC · inactive · consent versions | Preview yes · **activate = separate** |
 | **D2** | Core resolve contract stub | Implement resolve API in Core nonprod | Contract test yes |
-| **D3** | QMOS schema additive | `0013`–`0015` on nonprod → then prod apply yes | Apply yes |
+| **D3** | QMOS schema additive | `0013`–`0014` (intake submissions + stage; **no** Core-id column) on nonprod → then prod apply yes | Apply yes |
 | **D4** | Orchestration dry-run | RoseOS router + AE knowledge in nonprod; **no public traffic** | Dry-run yes |
 | **D5** | Staff intake console (QMOS) | View submission · stages · identity flags · queues | Staff preview yes |
 | **D6** | Public form pilot | Limited activate · monitoring · no Verified auto | **Public activate yes** |
@@ -783,7 +825,7 @@ Please answer **yes / no / pick** (blank = no):
 
 ### Ownership & IDs
 
-1. Confirm Core foreign key on QMOS qualifiers is named **`cca_client_profile_id`** (uuid) — **Y/N**?  
+1. **Superseded by C-1 / Registry §4a:** no Core FK column on QMOS until ID-001 — confirm hold stands — **Y/N**?  
 2. Confirm AE link stays separate as Option A **`auditengine_id`** — **Y/N**?  
 3. One QMOS `Q-` per Core person profile even with many licenses — **Y/N**?
 
@@ -850,5 +892,7 @@ Do **not** use on applicant or staff primary CTAs: guaranteed match · legally c
 - [ ] QMOS code-owned form schema as SoT  
 
 ---
+
+**Redlines (2026-08-08):** C-1 identity hold / no `cca_client_profile_id` on QMOS · C-2 RS-001/RS-002 §7.1a · C-3 Contract C envelopes in §4.4 / §7.2 / §7.3. Awaiting Rose re-review + §13 picks.
 
 *End of 13-return design package. Waiting on Rose §13 decisions before any build or activation.*

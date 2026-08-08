@@ -5,7 +5,8 @@
 **Handoff type:** INCREMENTAL design add-on to QualifierManageOS staff work  
 **Authorized by Rose:** 2026-08-01 — “Qualifier Lead Intake and Future Verified Qualifier Architecture”  
 **Base tip:** `main` @ `fd458156c0434abe77ec8dedc8482f7da3ea1a3f`  
-**Design branch:** `cursor/qualifier-lead-intake-design-97db`
+**Design branch:** `cursor/qualifier-lead-intake-design-97db`  
+**Redlines (2026-08-08):** C-1 identity hold · C-2 RS-001/RS-002 §7.1a · C-3 Contract C envelopes — awaiting Rose re-review / §13 picks
 
 ---
 
@@ -22,8 +23,8 @@ It is **not** a standalone QualifierManageOS public form and **not** authorizati
 | System | Owns |
 |---|---|
 | **FormsConnect** | Form definition, fields, conditionals, branding, publish controls, consent language, versioning, submission UX |
-| **ComplianceCore** | Primary identity SoT; returns canonical `cca_client_profile_id` |
-| **QualifierManageOS** | Qualifier-domain reflection linked by `cca_client_profile_id` — not an editable Core identity copy |
+| **ComplianceCore** | Primary identity SoT; mints Core profile ids (server-side resolve for consumers) |
+| **QualifierManageOS** | Qualifier-domain reflection (`Q-###`); **no** Core identifier column until ID-001 / Registry §4a re-decide |
 | **RoseOS** | Workflow, routing, prioritization, recommendation rules after submit |
 | **AuditEngine** | Regulatory / license / trade / jurisdiction / risk / compliance knowledge (no QMOS recreation of AE scoring) |
 | **QualifierConnect** | Future qualifier-facing portal — design handoff only in this lane |
@@ -48,7 +49,7 @@ It is **not** a standalone QualifierManageOS public form and **not** authorizati
 | Anchor | How this design uses it |
 |---|---|
 | `DATA_MODEL.md` Option A | Keep friendly `Q-` PKs; nullable unique `auditengine_id` for AE mapping |
-| Core link | Add nullable `cca_client_profile_id` on `qualifiers` (proposed non-destructive migration — **not applied**) |
+| Core link | **On hold** (Registry §4a / ID-001) — no `cca_client_profile_id` on QMOS tables; server-side resolve only |
 | Existing status enums | Map lead / verification / placement stages onto `status` + `verification_status` + proposed intake fields — see §5 |
 | Sync proposal | Complements `migrations/SYNC_INTEGRATIONS_V1_PROPOSAL.md`; intake does **not** turn seams on |
 | Live journal | Through `0012_seed_bulk_v1` — do not reapply unless Rose says |
